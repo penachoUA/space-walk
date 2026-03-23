@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 const scene = new THREE.Scene();
 
@@ -18,6 +19,10 @@ const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
+// Orbit Controls
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.update();
+
 // Sphere
 const geometry = new THREE.SphereGeometry(1, 64, 64);
 const material = new THREE.MeshStandardMaterial({ color: 0x44aaff });
@@ -28,6 +33,7 @@ scene.add(sphere);
 function animate() {
 	sunLight.position.x = Math.sin(Date.now() * 0.001) * 5;
 	sunLight.position.z = Math.cos(Date.now() * 0.001) * 5;
+	controls.update();
 	renderer.render(scene, camera);
 }
 renderer.setAnimationLoop(animate);
