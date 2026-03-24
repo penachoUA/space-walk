@@ -1,25 +1,29 @@
+import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { renderer, scene } from './scene.js';
 import { camera } from './camera.js';
-import { ambientLight, sunLight } from './light.js'
-import Planet from './Planet.js'
+import Planet from './Planet.js';
+import Star from './Star.js';
 
-// Add lighting
+// Add ambient lighting
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
 scene.add(ambientLight);
-scene.add(sunLight);
 
 // Orbit Controls
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.update();
 
+// Star
+const star = new Star(2, 64, 64, 0xEBE5C7);
+scene.add(star);
+
 // Planet
 const planet = new Planet(1, 64, 64, 0x44aaff);
 scene.add(planet);
+planet.position.y = 5;
 
 // Animation
 function animate() {
-	sunLight.position.x = Math.sin(Date.now() * 0.001) * 5;
-	sunLight.position.z = Math.cos(Date.now() * 0.001) * 5;
 	controls.update();
 	renderer.render(scene, camera);
 }
