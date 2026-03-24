@@ -14,7 +14,7 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.update();
 
 // Star
-const star = new Star(2, 64, 64, 0xEBE5C7);
+const star = new Star(2, 64, 64, 0xebe5c7);
 scene.add(star);
 
 // Planet

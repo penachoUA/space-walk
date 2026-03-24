@@ -4,11 +4,15 @@ class Star extends THREE.Object3D {
 	constructor(radius, widthSeg, heightSeg, color) {
 		super();
 		const geometry = new THREE.SphereGeometry(radius, widthSeg, heightSeg);
-		const material = new THREE.MeshBasicMaterial({ color });
-		const mesh = new THREE.Mesh(geometry, material);
-		this.add(mesh);
+		const material = new THREE.MeshStandardMaterial({
+			color,
+			emissive: color,
+			emissiveIntensity: 1.0
+		});
+		this.mesh = new THREE.Mesh(geometry, material);
+		this.add(this.mesh);
 
-		this.light = new THREE.DirectionalLight(0xffffff, 1.5);
+		this.light = new THREE.PointLight(0xffffff, 100, 0, 2);
 		this.add(this.light);
 	}
 }
