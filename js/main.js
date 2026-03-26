@@ -18,12 +18,16 @@ const star = new Star(2, 64, 64, 0xebe5c7);
 scene.add(star);
 
 // Planet
-const planet = new Planet(1, 64, 64, 0x44aaff, 10, 0.02, 0, 15);
-scene.add(planet);
+const planets = [
+	new Planet(1, 64, 64, 0x44aaff, 10, 0.02, 0, 15),
+	new Planet(2, 64, 64, 0x2e8c20, 21, 0.03, 4, 20),
+	new Planet(0.5, 16, 16, 0xa12ad1, 4, 0.01, 2, -10)
+];
+planets.forEach((p) => scene.add(p))
 
 // Animation
 function animate() {
-	planet.orbit();
+	planets.forEach((p) => p.orbit());
 	controls.update();
 	renderer.render(scene, camera);
 }
