@@ -14,14 +14,38 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.update();
 
 // Star
-const star = new Star(2, 64, 64, 0xebe5c7);
+const star = new Star({
+	radius: 2,
+	color: 0xebe5c7
+});
 scene.add(star);
 
 // Planet
 const planets = [
-	new Planet(1, 64, 64, 0x44aaff, 10, 0.02, 0, 15),
-	new Planet(2, 64, 64, 0x2e8c20, 21, 0.03, 4, 20),
-	new Planet(0.5, 16, 16, 0xa12ad1, 4, 0.01, 2, -10)
+	new Planet({
+		radius: 1,
+		color: 0x44aaff,
+		orbitRadius: 10,
+		orbitSpeed: 0.02,
+		orbitAngle: 0,
+		orbitInclination: 15
+	}),
+	new Planet({
+		radius: 2,
+		color: 0x2e8c20,
+		orbitRadius: 21,
+		orbitSpeed: 0.03,
+		orbitAngle: 4,
+		orbitInclination: 20
+	}),
+	new Planet({
+		radius: 0.5,
+		color: 0xa12ad1,
+		orbitRadius: 4,
+		orbitSpeed: 0.01,
+		orbitAngle: 2,
+		orbitInclination: -10
+	})
 ];
 planets.forEach((p) => scene.add(p))
 

@@ -1,9 +1,11 @@
 import * as THREE from 'three';
 
 class Star extends THREE.Object3D {
-	constructor(radius, widthSeg, heightSeg, color) {
+	constructor({ radius, color }) {
 		super();
-		const geometry = new THREE.SphereGeometry(radius, widthSeg, heightSeg);
+
+		const segments = Math.floor(radius * 50);
+		const geometry = new THREE.SphereGeometry(radius, segments, segments);
 		const material = new THREE.MeshStandardMaterial({
 			color,
 			emissive: color,
