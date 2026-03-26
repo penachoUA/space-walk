@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 class Planet extends THREE.Object3D {
-	constructor(radius, widthSeg, heightSeg, color, orbitRadius, orbitSpeed, orbitAngle) {
+	constructor(radius, widthSeg, heightSeg, color, orbitRadius, orbitSpeed, orbitAngle, orbitInclination) {
 		super();
 		const geometry = new THREE.SphereGeometry(radius, widthSeg, heightSeg);
 		const material = new THREE.MeshStandardMaterial({ color });
@@ -11,11 +11,13 @@ class Planet extends THREE.Object3D {
 		this.orbitRadius = orbitRadius;
 		this.orbitSpeed = orbitSpeed;
 		this.orbitAngle = orbitAngle;
+		this.orbitInclination = orbitInclination * (Math.PI / 180); // Convert to radians
 	}
 
 	orbit() {
 		this.orbitAngle += this.orbitSpeed;
 		this.position.x = Math.sin(this.orbitAngle) * this.orbitRadius;
+		this.position.y = Math.sin(this.orbitAngle) * this.orbitRadius * Math.sin(this.orbitInclination);
 		this.position.z = Math.cos(this.orbitAngle) * this.orbitRadius;
 	}
 }

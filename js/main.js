@@ -18,7 +18,7 @@ const star = new Star(2, 64, 64, 0xebe5c7);
 scene.add(star);
 
 // Planet
-const planet = new Planet(1, 64, 64, 0x44aaff, 5, 0.01, 0);
+const planet = new Planet(1, 64, 64, 0x44aaff, 10, 0.02, 0, 15);
 scene.add(planet);
 
 // Animation
