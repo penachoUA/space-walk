@@ -28,7 +28,9 @@ const planets = [
 		orbitRadius: 10,
 		orbitSpeed: 0.02,
 		orbitAngle: 0,
-		orbitInclination: 15
+		orbitInclination: 15,
+		rotationSpeed: 0.01,
+		rotationAxis: 12
 	}),
 	new Planet({
 		radius: 2,
@@ -36,7 +38,9 @@ const planets = [
 		orbitRadius: 21,
 		orbitSpeed: 0.03,
 		orbitAngle: 4,
-		orbitInclination: 20
+		orbitInclination: 20,
+		rotationSpeed: 0.012,
+		rotationAxis: 7
 	}),
 	new Planet({
 		radius: 0.5,
@@ -44,14 +48,16 @@ const planets = [
 		orbitRadius: 4,
 		orbitSpeed: 0.01,
 		orbitAngle: 2,
-		orbitInclination: -10
+		orbitInclination: -10,
+		rotationSpeed: 0.022,
+		rotationAxis: 23
 	})
 ];
 planets.forEach((p) => scene.add(p))
 
 // Animation
 function animate() {
-	planets.forEach((p) => p.orbit());
+	planets.forEach((p) => p.move());
 	controls.update();
 	renderer.render(scene, camera);
 }
