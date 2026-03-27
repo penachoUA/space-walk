@@ -23,7 +23,7 @@ scene.add(star);
 // Planet
 const planets = [
 	new Planet({
-		radius: 1,
+		radius: 6,
 		color: 0x44aaff,
 		orbitRadius: 10,
 		orbitSpeed: 0.02,
@@ -55,10 +55,20 @@ const planets = [
 ];
 planets.forEach((p) => scene.add(p))
 
+// Add camera on planet surface
+const target = planets[0];
+const height = target.radius * 0.3;
+const offset = new THREE.Vector3(0, 1, 0);
+
+
 // Animation
 function animate() {
 	planets.forEach((p) => p.move());
-	controls.update();
+	// controls.update();
+
+	camera.position.copy(target.position)
+		.addScaledVector(offset, target.radius + height);
+	camera.lookAt(target.position.clone().add(new THREE.Vector3(0, 0, -target.orbitRadius)));
 	renderer.render(scene, camera);
 }
 renderer.setAnimationLoop(animate);

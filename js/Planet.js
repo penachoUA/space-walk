@@ -10,6 +10,8 @@ class Planet extends THREE.Object3D {
 		this.mesh = new THREE.Mesh(geometry, material);
 		this.add(this.mesh);
 
+		this.radius = radius;
+
 		// Orbit
 		this.orbitRadius = orbitRadius;
 		this.orbitSpeed = orbitSpeed;
@@ -19,8 +21,6 @@ class Planet extends THREE.Object3D {
 		// Rotation
 		this.mesh.rotation.z = rotationAxis * (Math.PI / 180);
 		this.rotationSpeed = rotationSpeed;
-
-		this.mesh.material.wireframe = true;
 	}
 
 	move() {
