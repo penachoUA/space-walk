@@ -4,7 +4,7 @@ class Planet extends THREE.Object3D {
 	constructor({ radius, color, orbitRadius, orbitSpeed, orbitAngle, orbitInclination, rotationSpeed, rotationAxis }) {
 		super();
 
-		const segments = Math.floor(radius * 50);
+		const segments = Math.floor(radius * 10);
 		const geometry = new THREE.SphereGeometry(radius, segments, segments);
 		const material = new THREE.MeshStandardMaterial({ color });
 		this.mesh = new THREE.Mesh(geometry, material);
@@ -21,6 +21,11 @@ class Planet extends THREE.Object3D {
 		// Rotation
 		this.mesh.rotation.z = rotationAxis * (Math.PI / 180);
 		this.rotationSpeed = rotationSpeed;
+
+		// Visual debugging features
+		this.debug = new THREE.Object3D();
+		this.add(this.debug);
+		this.debug.visible = false;
 	}
 
 	move() {
@@ -37,6 +42,84 @@ class Planet extends THREE.Object3D {
 
 	rotate() {
 		this.mesh.rotation.y += this.rotationSpeed;
+	}
+
+	activateDebugMode() {
+		if (this.debug.children.length === 0) {
+			const planetAxes = new THREE.AxesHelper(5);
+			this.debug.add(planetAxes);
+
+			const meshAxes = new THREE.AxesHelper(3);
+			this.mesh.add(meshAxes);
+
+			this.createSurfaceGrid();
+
+			// this.mesh.material.wireframe = true;
+			this.debug.visible = true;
+		}
+	}
+
+	createSurfaceGrid() {
+		this.surfaceGrid = new THREE.Object3D();
+
+		let latSegments = 16;
+		let longSegments = 64;
+		for (let latIndex = 0; latIndex <= latSegments; latIndex++) {
+			const lat = (latIndex / latSegments) * Math.PI;
+
+			const y = Math.cos(lat) * this.radius;
+			const ringRadius = Math.sin(lat) * this.radius;
+
+			const points = [];
+			for (let i = 0; i < longSegments; i++) {
+				const angle = (i / longSegments) * 2 * Math.PI;
+				const x = Math.cos(angle) * ringRadius;
+				const z = Math.sin(angle) * ringRadius;
+
+				points.push(new THREE.Vector3(x, y, z));
+
+			}
+			const t = (y + this.radius) / (2 * this.radius);
+			const material = new THREE.LineBasicMaterial({
+				color: new THREE.Color().setHSL(t, 1, 0.5)
+			});
+
+			const geometry = new THREE.BufferGeometry().setFromPoints(points);
+			const ring = new THREE.LineLoop(geometry, material);
+			this.surfaceGrid.add(ring);
+		}
+
+		longSegments = 16;
+		latSegments = 64;
+
+		for (let longIndex = 0; longIndex <= longSegments; longIndex++) {
+
+			const lon = (longIndex / longSegments) * Math.PI * 2;
+
+			const points = [];
+
+			for (let latIndex = 0; latIndex <= latSegments; latIndex++) {
+
+				const lat = (latIndex / latSegments) * Math.PI;
+
+				const x = Math.sin(lat) * Math.cos(lon) * this.radius;
+				const y = Math.cos(lat) * this.radius;
+				const z = Math.sin(lat) * Math.sin(lon) * this.radius;
+
+				points.push(new THREE.Vector3(x, y, z));
+			}
+
+			const t = (longIndex / longSegments);
+			const material = new THREE.LineBasicMaterial({
+				color: new THREE.Color().setHSL(t, 1, 0.5)
+			});
+
+			const geometry = new THREE.BufferGeometry().setFromPoints(points);
+			const line = new THREE.Line(geometry, material);
+
+			this.surfaceGrid.add(line);
+		}
+		this.debug.add(this.surfaceGrid);
 	}
 }
 

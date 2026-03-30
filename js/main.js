@@ -64,11 +64,12 @@ const offset = new THREE.Vector3(0, 1, 0);
 // Animation
 function animate() {
 	planets.forEach((p) => p.move());
+	planets.forEach((p) => p.activateDebugMode());
 	// controls.update();
 
 	camera.position.copy(target.position)
 		.addScaledVector(offset, target.radius + height);
-	camera.lookAt(target.position.clone().add(new THREE.Vector3(0, 0, -target.orbitRadius)));
+	camera.lookAt(target.position.clone().add(new THREE.Vector3(0, 0, -1.2 * target.orbitRadius)));
 	renderer.render(scene, camera);
 }
 renderer.setAnimationLoop(animate);
