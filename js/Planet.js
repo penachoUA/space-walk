@@ -4,7 +4,7 @@ class Planet extends THREE.Object3D {
 	constructor({ radius, color, orbitRadius, orbitSpeed, orbitAngle, orbitInclination, rotationSpeed, rotationAxis }) {
 		super();
 
-		const segments = Math.floor(radius * 10);
+		const segments = 32;
 		const geometry = new THREE.SphereGeometry(radius, segments, segments);
 		const material = new THREE.MeshStandardMaterial({ color });
 		this.mesh = new THREE.Mesh(geometry, material);
@@ -46,15 +46,15 @@ class Planet extends THREE.Object3D {
 
 	activateDebugMode() {
 		if (this.debug.children.length === 0) {
-			const planetAxes = new THREE.AxesHelper(5);
+			const planetAxes = new THREE.AxesHelper(this.radius + 5);
 			this.debug.add(planetAxes);
 
-			const meshAxes = new THREE.AxesHelper(3);
+			const meshAxes = new THREE.AxesHelper(this.radius + 3);
 			this.mesh.add(meshAxes);
 
 			this.createSurfaceGrid();
 
-			// this.mesh.material.wireframe = true;
+			this.mesh.material.wireframe = true;
 			this.debug.visible = true;
 		}
 	}

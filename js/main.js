@@ -9,34 +9,31 @@ import Star from './Star.js';
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
 scene.add(ambientLight);
 
-// Orbit Controls
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.update();
-
 // Star
 const star = new Star({
-	radius: 2,
+	radius: 4,
 	color: 0xebe5c7
-});
-scene.add(star);
 
+});
+
+scene.add(star);
 // Planet
 const planets = [
 	new Planet({
-		radius: 6,
+		radius: 2,
 		color: 0x44aaff,
-		orbitRadius: 10,
-		orbitSpeed: 0.02,
+		orbitRadius: 50,
+		orbitSpeed: 0.012,
 		orbitAngle: 0,
 		orbitInclination: 15,
 		rotationSpeed: 0.01,
 		rotationAxis: 12
 	}),
 	new Planet({
-		radius: 2,
+		radius: 1.5,
 		color: 0x2e8c20,
-		orbitRadius: 21,
-		orbitSpeed: 0.03,
+		orbitRadius: 25,
+		orbitSpeed: 0.013,
 		orbitAngle: 4,
 		orbitInclination: 20,
 		rotationSpeed: 0.012,
@@ -45,7 +42,7 @@ const planets = [
 	new Planet({
 		radius: 0.5,
 		color: 0xa12ad1,
-		orbitRadius: 4,
+		orbitRadius: 13,
 		orbitSpeed: 0.01,
 		orbitAngle: 2,
 		orbitInclination: -10,
@@ -53,27 +50,58 @@ const planets = [
 		rotationAxis: 23
 	})
 ];
+
 planets.forEach((p) => scene.add(p))
+// planets.forEach((p) => p.activateDebugMode());
 
 // Add camera on planet surface
 const target = planets[0];
-const height = target.radius * 0.3;
-const offset = new THREE.Vector3(0, 1, 0);
 
+// Player sits on the surface, camera is its child
+const player = new THREE.Object3D();
+target.add(player);
 
-// Animation
+// Offset camera slightly above surface
+camera.position.set(0, target.radius + 0.5, 0);
+player.add(camera);
+
+// Forward movement quaternion - applied every frame
+const forwardQ = new THREE.Quaternion()
+	.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -0.015);
+
+// Camera mode toggle
+let surfaceMode = true;
+const overviewCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+overviewCamera.position.z = 70;
+
+// Orbit Controls
+const controls = new OrbitControls(overviewCamera, renderer.domElement);
+controls.update();
+controls.addEventListener('change', () => renderer.render(scene, overviewCamera));
+
+window.addEventListener('keydown', (e) => {
+	if (e.code === 'Space') {
+		surfaceMode = !surfaceMode;
+		controls.enabled = !surfaceMode;
+	}
+});
+
 function animate() {
 	planets.forEach((p) => p.move());
-	planets.forEach((p) => p.activateDebugMode());
-	// controls.update();
-
-	camera.position.copy(target.position)
-		.addScaledVector(offset, target.radius + height);
-	camera.lookAt(target.position.clone().add(new THREE.Vector3(0, 0, -1.2 * target.orbitRadius)));
-	renderer.render(scene, camera);
+	// Move player forward
+	player.quaternion.multiply(forwardQ);
+	// Derive player position from quaternion
+	const q = player.quaternion;
+	const r = target.radius;
+	player.position.x = 2 * (q.y * q.w + q.z * q.x) * r;
+	player.position.y = 2 * (q.z * q.y - q.w * q.x) * r;
+	player.position.z = ((q.z * q.z + q.w * q.w) - (q.x * q.x + q.y * q.y)) * r;
+	// // Offset player to follow planet
+	// player.position.add(target.position);
+	renderer.render(scene, surfaceMode ? camera : overviewCamera);
 }
-renderer.setAnimationLoop(animate);
 
+renderer.setAnimationLoop(animate);
 window.addEventListener('resize', () => {
 	renderer.setSize(window.innerWidth, window.innerHeight);
 	camera.aspect = window.innerWidth / window.innerHeight;

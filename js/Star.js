@@ -4,13 +4,15 @@ class Star extends THREE.Object3D {
 	constructor({ radius, color }) {
 		super();
 
-		const segments = Math.floor(radius * 50);
+		const segments = 24;
 		const geometry = new THREE.SphereGeometry(radius, segments, segments);
 		const material = new THREE.MeshStandardMaterial({
 			color,
 			emissive: color,
 			emissiveIntensity: 1.0
 		});
+		this.radius = radius;
+
 		this.mesh = new THREE.Mesh(geometry, material);
 		this.add(this.mesh);
 
