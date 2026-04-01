@@ -1,9 +1,9 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { renderer, scene } from './scene.js';
-import { camera } from './camera.js';
 import Planet from './Planet.js';
 import Star from './Star.js';
+import Player from './Player.js';
 
 // Add ambient lighting
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
@@ -17,7 +17,7 @@ const star = new Star({
 });
 
 scene.add(star);
-// Planet
+// Planets
 const planets = [
 	new Planet({
 		radius: 2,
@@ -57,17 +57,7 @@ planets.forEach((p) => scene.add(p))
 // Add camera on planet surface
 const target = planets[0];
 
-// Player sits on the surface, camera is its child
-const player = new THREE.Object3D();
-target.add(player);
-
-// Offset camera slightly above surface
-camera.position.set(0, target.radius + 0.5, 0);
-player.add(camera);
-
-// Forward movement quaternion - applied every frame
-const forwardQ = new THREE.Quaternion()
-	.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -0.015);
+const player = new Player(target);
 
 // Camera mode toggle
 let surfaceMode = true;
@@ -88,22 +78,20 @@ window.addEventListener('keydown', (e) => {
 
 function animate() {
 	planets.forEach((p) => p.move());
-	// Move player forward
-	player.quaternion.multiply(forwardQ);
-	// Derive player position from quaternion
-	const q = player.quaternion;
-	const r = target.radius;
-	player.position.x = 2 * (q.y * q.w + q.z * q.x) * r;
-	player.position.y = 2 * (q.z * q.y - q.w * q.x) * r;
-	player.position.z = ((q.z * q.z + q.w * q.w) - (q.x * q.x + q.y * q.y)) * r;
-	// // Offset player to follow planet
-	// player.position.add(target.position);
-	renderer.render(scene, surfaceMode ? camera : overviewCamera);
-}
 
+	// Move player forward
+	player.moveForward();
+
+	renderer.render(scene, surfaceMode ? player.camera : overviewCamera);
+}
 renderer.setAnimationLoop(animate);
+
 window.addEventListener('resize', () => {
 	renderer.setSize(window.innerWidth, window.innerHeight);
-	camera.aspect = window.innerWidth / window.innerHeight;
-	camera.updateProjectionMatrix();
+
+	player.camera.aspect = window.innerWidth / window.innerHeight;
+	player.camera.updateProjectionMatrix();
+
+	overviewCamera.aspect = window.innerWidth / window.innerHeight;
+	overviewCamera.updateProjectionMatrix();
 })
