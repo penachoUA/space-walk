@@ -6,7 +6,7 @@ class Planet extends THREE.Object3D {
 
 		const segments = 32;
 		const geometry = new THREE.SphereGeometry(radius, segments, segments);
-		const material = new THREE.MeshStandardMaterial({ color });
+		const material = new THREE.MeshToonMaterial({ color });
 		this.mesh = new THREE.Mesh(geometry, material);
 		this.add(this.mesh);
 

@@ -13,7 +13,6 @@ scene.add(ambientLight);
 const star = new Star({
 	radius: 4,
 	color: 0xebe5c7
-
 });
 
 scene.add(star);
@@ -74,6 +73,7 @@ window.addEventListener('keydown', (e) => {
 		surfaceMode = !surfaceMode;
 		controls.enabled = !surfaceMode;
 	}
+	if (e.code === 'KeyV') player.toggleCamera();
 });
 
 function animate() {

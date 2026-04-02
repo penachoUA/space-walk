@@ -4,54 +4,69 @@ class Player extends THREE.Object3D {
 	constructor(startingPlanet) {
 		super();
 
-		// Create mock model to see the player position
-		this.height = 0.2;
-		const geometry = new THREE.CapsuleGeometry(this.height, 0.5, 4, 8);
-		const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+		// Player is composed of a pivot at the center of the planet and the actual model placed
+		// at the surface. This facilitates rotation: rotate the pivot and the model follows
+		this.playerContent = new THREE.Group();
+		this.add(this.playerContent);
+
+		// Build the model
+		this.height = 0.05;
+		const geometry = new THREE.CapsuleGeometry(this.height, 0.1, 4, 8);
+		const material = new THREE.MeshToonMaterial({ color: 0x00ff00 });
 		this.mesh = new THREE.Mesh(geometry, material);
-		this.add(this.mesh);
 
-		// Create player camera
-		this.camera = new THREE.PerspectiveCamera(
-			75,
-			window.innerWidth / window.innerHeight,
-			0.01,
-			10000);
-		this.camera.position.set(0, 0.5, 0); // Slightly above player origin, simulating eye height
-		this.camera.rotation.x = Math.PI / 2 - 0.4;  // Rotate camera to look forward
-		this.add(this.camera);
+		this.playerContent.add(this.mesh);
 
-		// Place Player on starting Planet
-		this.moveToPlanet(startingPlanet)
+		this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 10000);
+		this.playerContent.add(this.camera);
+		this.isCameraFirstPerson = true;
+		this.setFirstPersonCamera();
 
-		// Forward movement quaternion
-		this.forwardQ = new THREE.Quaternion()
-			.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -0.015);
+		this.moveToPlanet(startingPlanet);
 	}
 
 	moveToPlanet(planet) {
-		if (this.currentPlanet) {
-			this.currentPlanet.remove(this);
-		}
-
+		if (this.currentPlanet) this.currentPlanet.remove(this);
 		this.currentPlanet = planet;
-		this.position.set(0, planet.radius + this.height / 2, 0);
-		this.quaternion.identity(); // reset orientation
+
+		// The pivot stays at 0,0,0 relative to the planet
+		this.position.set(0, 0, 0);
+		this.quaternion.set(0, 0, 0, 1);
+
+		// Move the model + camera to the surface
+		this.playerContent.position.set(0, planet.radius + this.height, 0);
 
 		planet.add(this);
 	}
 
 	moveForward() {
-		this.quaternion.multiply(this.forwardQ);
+		const speed = 0.015;
+		this.rotateX(-speed);
+	}
 
-		const q = this.quaternion;
-		const r = this.currentPlanet.radius;
+	activateDebugMode() {
+		this.playerContent.add(new THREE.AxesHelper(1));
+	}
 
-		this.position.x = 2 * (q.y * q.w + q.z * q.x) * r;
-		this.position.y = 2 * (q.z * q.y - q.w * q.x) * r;
-		this.position.z = ((q.z * q.z + q.w * q.w) - (q.x * q.x + q.y * q.y)) * r;
+	toggleCamera() {
+		if (this.isCameraFirstPerson) {
+			this.setThirdPersonCamera();
+		}
+		else {
+			this.setFirstPersonCamera();
+		}
+
+		this.isCameraFirstPerson = !this.isCameraFirstPerson;
+	}
+	setFirstPersonCamera() {
+		this.camera.position.set(0, 0, 0);
+		this.camera.rotation.set(-0.5, 0, 0);
+	}
+
+	setThirdPersonCamera() {
+		this.camera.position.set(0, 0.5, 0.6);
+		this.camera.rotation.set(-0.9, 0, 0);
 	}
 }
 
 export default Player;
-

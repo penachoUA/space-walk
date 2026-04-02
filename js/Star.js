@@ -6,7 +6,7 @@ class Star extends THREE.Object3D {
 
 		const segments = 24;
 		const geometry = new THREE.SphereGeometry(radius, segments, segments);
-		const material = new THREE.MeshStandardMaterial({
+		const material = new THREE.MeshToonMaterial({
 			color,
 			emissive: color,
 			emissiveIntensity: 1.0
