@@ -17,6 +17,8 @@ class Player extends THREE.Object3D {
 
 		this.playerContent.add(this.mesh);
 
+		this.heading = 0;
+
 		this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 10000);
 		this.playerContent.add(this.camera);
 		this.isCameraFirstPerson = true;
@@ -39,9 +41,29 @@ class Player extends THREE.Object3D {
 		planet.add(this);
 	}
 
-	moveForward() {
-		const speed = 0.015;
-		this.rotateX(-speed);
+	turn(angle) {
+		this.heading += angle;
+
+		this.playerContent.quaternion.setFromAxisAngle(
+			new THREE.Vector3(0, 1, 0),
+			this.heading
+		);
+	}
+
+	moveForward(direction = 1) {
+		const speed = 0.015 * direction;
+
+		// Get right vector
+		const right = new THREE.Vector3(1, 0, 0);
+
+		// Adjust it by the player's turning angle (heading)
+		right.applyAxisAngle(new THREE.Vector3(0, 1, 0), this.heading);
+
+		// This converts "Player Right" into "Planet Right"
+		right.applyQuaternion(this.quaternion);
+
+		const q = new THREE.Quaternion().setFromAxisAngle(right, -speed);
+		this.quaternion.premultiply(q);
 	}
 
 	activateDebugMode() {

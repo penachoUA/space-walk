@@ -51,12 +51,18 @@ const planets = [
 ];
 
 planets.forEach((p) => scene.add(p))
-// planets.forEach((p) => p.activateDebugMode());
+planets.forEach((p) => p.activateDebugMode());
 
 // Add camera on planet surface
-const target = planets[0];
-
+const target = planets[2];
+const marker = new THREE.Mesh(
+	new THREE.SphereGeometry(0.1, 8, 8),
+	new THREE.MeshBasicMaterial({ color: 0xff0000 })
+);
+marker.position.set(0, planets[0].radius + 0.1, 0); // north pole
+planets[0].add(marker);
 const player = new Player(target);
+player.activateDebugMode();
 
 // Camera mode toggle
 let surfaceMode = true;
@@ -76,11 +82,17 @@ window.addEventListener('keydown', (e) => {
 	if (e.code === 'KeyV') player.toggleCamera();
 });
 
+const keys = {};
+window.addEventListener('keydown', (e) => keys[e.code] = true);
+window.addEventListener('keyup', (e) => keys[e.code] = false);
+
 function animate() {
 	planets.forEach((p) => p.move());
 
-	// Move player forward
-	player.moveForward();
+	if (keys['KeyW'] || keys['ArrowUp']) player.moveForward(1);
+	if (keys['KeyS'] || keys['ArrowDown']) player.moveForward(-1);
+	if (keys['KeyA'] || keys['ArrowLeft']) player.turn(0.02);
+	if (keys['KeyD'] || keys['ArrowRight']) player.turn(-0.02);
 
 	renderer.render(scene, surfaceMode ? player.camera : overviewCamera);
 }
