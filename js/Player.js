@@ -1,30 +1,46 @@
 import * as THREE from 'three';
 
+const _vector = new THREE.Vector3();
+const _quat = new THREE.Quaternion();
+const _up = new THREE.Vector3(0, 1, 0);
+const _right = new THREE.Vector3(1, 0, 0);
+
+// Player is composed of a pivot at the center of the planet and the actual model placed
+// at the surface. This facilitates rotation: rotate the pivot and the model follows
 class Player extends THREE.Object3D {
-	constructor(startingPlanet) {
+	constructor(startingPlanet, height, speed) {
 		super();
 
-		// Player is composed of a pivot at the center of the planet and the actual model placed
-		// at the surface. This facilitates rotation: rotate the pivot and the model follows
-		this.playerContent = new THREE.Group();
-		this.add(this.playerContent);
+		this.height = height;
+		this.speed = speed;
+		this.radius = height * 0.25;
+		this.heading = 0;
+		this.isCameraFirstPerson = false;
+
+		this._setupVisuals();
+		this._setupCamera();
+		this.moveToPlanet(startingPlanet);
+	}
+
+	_setupVisuals() {
+		this.playerModel = new THREE.Group();
+		this.add(this.playerModel);
 
 		// Build the model
-		this.height = 0.05;
-		const geometry = new THREE.CapsuleGeometry(this.height, 0.1, 4, 8);
+		const geometry = new THREE.CylinderGeometry(this.radius, this.radius, this.height);
 		const material = new THREE.MeshToonMaterial({ color: 0x00ff00 });
 		this.mesh = new THREE.Mesh(geometry, material);
 
-		this.playerContent.add(this.mesh);
+		// Move mesh so feet are at surface level
+		this.mesh.position.y = this.height / 2;
 
-		this.heading = 0;
+		this.playerModel.add(this.mesh);
+	}
 
+	_setupCamera() {
 		this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 10000);
-		this.playerContent.add(this.camera);
-		this.isCameraFirstPerson = true;
-		this.setFirstPersonCamera();
-
-		this.moveToPlanet(startingPlanet);
+		this.playerModel.add(this.camera);
+		this.setThirdPersonCamera();
 	}
 
 	moveToPlanet(planet) {
@@ -33,10 +49,10 @@ class Player extends THREE.Object3D {
 
 		// The pivot stays at 0,0,0 relative to the planet
 		this.position.set(0, 0, 0);
-		this.quaternion.set(0, 0, 0, 1);
+		this.quaternion.identity();
 
 		// Move the model + camera to the surface
-		this.playerContent.position.set(0, planet.radius + this.height, 0);
+		this.playerModel.position.set(0, planet.radius, 0);
 
 		planet.add(this);
 	}
@@ -44,50 +60,41 @@ class Player extends THREE.Object3D {
 	turn(angle) {
 		this.heading += angle;
 
-		this.playerContent.quaternion.setFromAxisAngle(
-			new THREE.Vector3(0, 1, 0),
-			this.heading
-		);
+		this.playerModel.quaternion.setFromAxisAngle(_up, this.heading);
 	}
 
-	moveForward(direction = 1) {
-		const speed = 0.015 * direction;
+	move(direction = 1) {
+		const moveStep = this.speed * direction;
 
-		// Get right vector
-		const right = new THREE.Vector3(1, 0, 0);
+		// Calculate right axis
+		_vector.copy(_right).applyAxisAngle(_up, this.heading);
 
-		// Adjust it by the player's turning angle (heading)
-		right.applyAxisAngle(new THREE.Vector3(0, 1, 0), this.heading);
+		// Convert to planet right axis
+		_vector.applyQuaternion(this.quaternion);
 
-		// This converts "Player Right" into "Planet Right"
-		right.applyQuaternion(this.quaternion);
-
-		const q = new THREE.Quaternion().setFromAxisAngle(right, -speed);
-		this.quaternion.premultiply(q);
-	}
-
-	activateDebugMode() {
-		this.playerContent.add(new THREE.AxesHelper(1));
+		// Apply rotation to pivot
+		_quat.setFromAxisAngle(_vector, -moveStep);
+		this.quaternion.premultiply(_quat);
 	}
 
 	toggleCamera() {
-		if (this.isCameraFirstPerson) {
-			this.setThirdPersonCamera();
-		}
-		else {
-			this.setFirstPersonCamera();
-		}
-
 		this.isCameraFirstPerson = !this.isCameraFirstPerson;
+
+		this.isCameraFirstPerson ? this.setFirstPersonCamera() : this.setThirdPersonCamera();
 	}
 	setFirstPersonCamera() {
-		this.camera.position.set(0, 0, 0);
-		this.camera.rotation.set(-0.5, 0, 0);
+		if (this.camera === null) return;
+		this.camera.position.set(0, this.height * 0.8, 0);
+		this.camera.rotation.set(-0.4, 0, 0);
 	}
 
 	setThirdPersonCamera() {
-		this.camera.position.set(0, 0.5, 0.6);
-		this.camera.rotation.set(-0.9, 0, 0);
+		this.camera.position.set(0, this.height * 3, this.height * 6);
+		this.camera.rotation.set(-0.6, 0, 0);
+	}
+
+	activateDebugMode() {
+		this.playerModel.add(new THREE.AxesHelper(1));
 	}
 }
 
