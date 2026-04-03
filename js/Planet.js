@@ -60,66 +60,33 @@ class Planet extends THREE.Object3D {
 	}
 
 	createSurfaceGrid() {
-		this.surfaceGrid = new THREE.Object3D();
+		const edges = new THREE.EdgesGeometry(this.mesh.geometry);
 
-		let latSegments = 16;
-		let longSegments = 64;
-		for (let latIndex = 0; latIndex <= latSegments; latIndex++) {
-			const lat = (latIndex / latSegments) * Math.PI;
+		const count = edges.attributes.position.count;
+		const colors = new Float32Array(count * 3); // (R,G,B) per vertex
+		const positions = edges.attributes.position.array;
 
-			const y = Math.cos(lat) * this.radius;
-			const ringRadius = Math.sin(lat) * this.radius;
+		const tempColor = new THREE.Color();
 
-			const points = [];
-			for (let i = 0; i < longSegments; i++) {
-				const angle = (i / longSegments) * 2 * Math.PI;
-				const x = Math.cos(angle) * ringRadius;
-				const z = Math.sin(angle) * ringRadius;
+		for (let vertex = 0; vertex < count; vertex++) {
+			const vertexY = positions[vertex * 3 + 1];
+			const t = (vertexY + this.radius) / (2 * this.radius);
 
-				points.push(new THREE.Vector3(x, y, z));
+			tempColor.setHSL(t, 1, 0.5);
 
-			}
-			const t = (y + this.radius) / (2 * this.radius);
-			const material = new THREE.LineBasicMaterial({
-				color: new THREE.Color().setHSL(t, 1, 0.5)
-			});
-
-			const geometry = new THREE.BufferGeometry().setFromPoints(points);
-			const ring = new THREE.LineLoop(geometry, material);
-			this.surfaceGrid.add(ring);
+			colors[vertex * 3] = tempColor.r;
+			colors[vertex * 3 + 1] = tempColor.g;
+			colors[vertex * 3 + 2] = tempColor.b;
 		}
 
-		longSegments = 16;
-		latSegments = 64;
+		edges.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-		for (let longIndex = 0; longIndex <= longSegments; longIndex++) {
+		const lineMaterial = new THREE.LineBasicMaterial({
+			vertexColors: true
+		});
 
-			const lon = (longIndex / longSegments) * Math.PI * 2;
-
-			const points = [];
-
-			for (let latIndex = 0; latIndex <= latSegments; latIndex++) {
-
-				const lat = (latIndex / latSegments) * Math.PI;
-
-				const x = Math.sin(lat) * Math.cos(lon) * this.radius;
-				const y = Math.cos(lat) * this.radius;
-				const z = Math.sin(lat) * Math.sin(lon) * this.radius;
-
-				points.push(new THREE.Vector3(x, y, z));
-			}
-
-			const t = (longIndex / longSegments);
-			const material = new THREE.LineBasicMaterial({
-				color: new THREE.Color().setHSL(t, 1, 0.5)
-			});
-
-			const geometry = new THREE.BufferGeometry().setFromPoints(points);
-			const line = new THREE.Line(geometry, material);
-
-			this.surfaceGrid.add(line);
-		}
-		this.debug.add(this.surfaceGrid);
+		const line = new THREE.LineSegments(edges, lineMaterial);
+		this.debug.add(line);
 	}
 }
 

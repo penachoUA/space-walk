@@ -54,7 +54,7 @@ planets.forEach((p) => scene.add(p))
 planets.forEach((p) => p.activateDebugMode());
 
 // Add camera on planet surface
-const target = planets[2];
+const target = planets[0];
 const marker = new THREE.Mesh(
 	new THREE.SphereGeometry(0.1, 8, 8),
 	new THREE.MeshBasicMaterial({ color: 0xff0000 })
