@@ -9,7 +9,7 @@ class Star extends THREE.Object3D {
 		const material = new THREE.MeshToonMaterial({
 			color,
 			emissive: color,
-			emissiveIntensity: 1.0
+			emissiveIntensity: 100.0
 		});
 		this.radius = radius;
 

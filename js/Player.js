@@ -8,18 +8,18 @@ const _right = new THREE.Vector3(1, 0, 0);
 // Player is composed of a pivot at the center of the planet and the actual model placed
 // at the surface. This facilitates rotation: rotate the pivot and the model follows
 class Player extends THREE.Object3D {
-	constructor(startingPlanet, height, speed) {
+	constructor(height, speed) {
 		super();
 
 		this.height = height;
 		this.speed = speed;
+		this.turnSpeed = speed;
 		this.radius = height * 0.25;
 		this.heading = 0;
 		this.isCameraFirstPerson = false;
 
 		this._setupVisuals();
 		this._setupCamera();
-		this.moveToPlanet(startingPlanet);
 	}
 
 	_setupVisuals() {
@@ -57,8 +57,8 @@ class Player extends THREE.Object3D {
 		planet.add(this);
 	}
 
-	turn(angle) {
-		this.heading += angle;
+	turn(direction = 1) {
+		this.heading += this.turnSpeed * direction;
 
 		this.playerModel.quaternion.setFromAxisAngle(_up, this.heading);
 	}
@@ -83,7 +83,6 @@ class Player extends THREE.Object3D {
 		this.isCameraFirstPerson ? this.setFirstPersonCamera() : this.setThirdPersonCamera();
 	}
 	setFirstPersonCamera() {
-		if (this.camera === null) return;
 		this.camera.position.set(0, this.height * 0.8, 0);
 		this.camera.rotation.set(-0.4, 0, 0);
 	}
