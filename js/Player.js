@@ -40,7 +40,7 @@ class Player extends THREE.Object3D {
 	_setupCamera() {
 		this.cameraYaw = 0;
 		this.cameraPitch = -0.6;
-		this.mouseSensitivity = 0.002;
+		this.mouseSensitivity = 0.001;
 
 		this.cameraPivot = new THREE.Object3D();
 		this.playerModel.add(this.cameraPivot);

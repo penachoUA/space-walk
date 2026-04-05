@@ -100,7 +100,34 @@ class Game {
 
 	_initEventListeners() {
 		this.keys = {};
+		this.isMouseDragging = false;
 
+		// Mouse input
+		window.addEventListener('mousedown', (e) => {
+			if (!this.surfaceMode) return;
+			// Left click to activate
+			if (e.button === 0) this.isMouseDragging = true;
+		})
+
+		window.addEventListener('mouseup', (e) => {
+			if (e.button === 0) this.isMouseDragging = false;
+		})
+
+		window.addEventListener('mouseleave', () => {
+			this.isMouseDragging = false;
+		});
+
+		window.addEventListener('mousemove', (e) => {
+			if (!this.surfaceMode || !this.isMouseDragging) return;
+
+			this.player.cameraYaw -= e.movementX * this.player.mouseSensitivity;
+			this.player.cameraPitch -= e.movementY * this.player.mouseSensitivity;
+
+			// Clamp pitch so camera doesn't flip
+			this.player.cameraPitch = Math.max(-1.5, Math.min(1.5, this.player.cameraPitch));
+		});
+
+		// Keyboard input
 		window.addEventListener('keydown', (e) => {
 			this.keys[e.code] = true;
 
@@ -112,16 +139,7 @@ class Game {
 
 		window.addEventListener('keyup', (e) => this.keys[e.code] = false);
 
-		window.addEventListener('mousemove', (e) => {
-			if (!this.surfaceMode) return;
-
-			this.player.cameraYaw -= e.movementX * this.player.mouseSensitivity;
-			this.player.cameraPitch -= e.movementY * this.player.mouseSensitivity;
-
-			// Clamp pitch so camera doesn't flip
-			this.player.cameraPitch = Math.max(-1.5, Math.min(1.5, this.player.cameraPitch));
-		});
-
+		// Window resizing
 		window.addEventListener('resize', () => {
 			const width = window.innerWidth;
 			const height = window.innerHeight;
