@@ -22,6 +22,8 @@ class Game {
 	}
 
 	update() {
+		this.player.isMoving = false;
+
 		this.planets.forEach((p) => p.move());
 
 		if (this.keys['KeyW'] || this.keys['ArrowUp']) this.player.move(1);
@@ -129,6 +131,7 @@ class Game {
 
 			if (e.code === 'Space') {
 				this.surfaceMode = !this.surfaceMode;
+				this.orbitControls.enabled = !this.surfaceMode;
 			}
 			if (e.code === 'KeyV') this.player.toggleCamera();
 		});

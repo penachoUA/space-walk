@@ -17,6 +17,7 @@ class Player extends THREE.Object3D {
 		this.radius = height * 0.25;
 		this.heading = 0;
 		this.isCameraFirstPerson = false;
+		this.isMoving = false;
 
 		this._setupVisuals();
 		this._setupCamera();
@@ -68,6 +69,7 @@ class Player extends THREE.Object3D {
 	}
 
 	move(direction = 1) {
+		this.isMoving = true;
 		const moveStep = this.speed * direction;
 
 		// Calculate right axis
