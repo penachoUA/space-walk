@@ -4,6 +4,7 @@ import { renderer, scene } from './scene.js';
 import Planet from './Planet.js';
 import Star from './Star.js';
 import Player from './Player.js';
+import CameraController from './CameraController.js';
 
 class Game {
 	constructor(debug = false) {
@@ -17,10 +18,10 @@ class Game {
 
 		if (debug) this._activateDebugMode();
 
-		renderer.setAnimationLoop(() => this.step());
+		renderer.setAnimationLoop(() => this.update());
 	}
 
-	step() {
+	update() {
 		this.planets.forEach((p) => p.move());
 
 		if (this.keys['KeyW'] || this.keys['ArrowUp']) this.player.move(1);
@@ -28,7 +29,7 @@ class Game {
 		if (this.keys['KeyA'] || this.keys['ArrowLeft']) this.player.turn(1);
 		if (this.keys['KeyD'] || this.keys['ArrowRight']) this.player.turn(-1);
 
-		this.player.updateCamera();
+		this.playerCamera.update();
 
 		renderer.render(scene, this.surfaceMode ? this.player.camera : this.camera);
 	}
@@ -93,6 +94,8 @@ class Game {
 		this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
 		this.camera.position.z = 70;
 
+		this.playerCamera = new CameraController(this.player);
+
 		// Orbit Controls
 		this.orbitControls = new OrbitControls(this.camera, renderer.domElement);
 		this.orbitControls.update();
@@ -100,31 +103,24 @@ class Game {
 
 	_initEventListeners() {
 		this.keys = {};
-		this.isMouseDragging = false;
 
 		// Mouse input
 		window.addEventListener('mousedown', (e) => {
 			if (!this.surfaceMode) return;
-			// Left click to activate
-			if (e.button === 0) this.isMouseDragging = true;
-		})
+			this.playerCamera.onMouseDown(e);
+		});
 
 		window.addEventListener('mouseup', (e) => {
-			if (e.button === 0) this.isMouseDragging = false;
-		})
+			this.playerCamera.onMouseUp(e);
+		});
 
 		window.addEventListener('mouseleave', () => {
-			this.isMouseDragging = false;
+			this.playerCamera.isDragging = false;
 		});
 
 		window.addEventListener('mousemove', (e) => {
-			if (!this.surfaceMode || !this.isMouseDragging) return;
-
-			this.player.cameraYaw -= e.movementX * this.player.mouseSensitivity;
-			this.player.cameraPitch -= e.movementY * this.player.mouseSensitivity;
-
-			// Clamp pitch so camera doesn't flip
-			this.player.cameraPitch = Math.max(-1.5, Math.min(1.5, this.player.cameraPitch));
+			if (!this.surfaceMode) return;
+			this.playerCamera.onMouseMove(e);
 		});
 
 		// Keyboard input

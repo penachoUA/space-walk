@@ -38,10 +38,6 @@ class Player extends THREE.Object3D {
 	}
 
 	_setupCamera() {
-		this.cameraYaw = 0;
-		this.cameraPitch = -0.6;
-		this.mouseSensitivity = 0.001;
-
 		this.cameraPivot = new THREE.Object3D();
 		this.playerModel.add(this.cameraPivot);
 
@@ -85,10 +81,6 @@ class Player extends THREE.Object3D {
 		this.quaternion.premultiply(_quat);
 	}
 
-	updateCamera() {
-		this.cameraPivot.rotation.y += (this.cameraYaw - this.cameraPivot.rotation.y) * 0.1;
-		this.cameraPivot.rotation.x += (this.cameraPitch - this.cameraPivot.rotation.x) * 0.1;
-	}
 	toggleCamera() {
 		this.isCameraFirstPerson = !this.isCameraFirstPerson;
 
