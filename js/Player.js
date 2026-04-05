@@ -38,8 +38,16 @@ class Player extends THREE.Object3D {
 	}
 
 	_setupCamera() {
+		this.cameraYaw = 0;
+		this.cameraPitch = -0.6;
+		this.mouseSensitivity = 0.002;
+
+		this.cameraPivot = new THREE.Object3D();
+		this.playerModel.add(this.cameraPivot);
+
 		this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 10000);
-		this.playerModel.add(this.camera);
+		this.cameraPivot.add(this.camera);
+
 		this.setThirdPersonCamera();
 	}
 
@@ -77,11 +85,16 @@ class Player extends THREE.Object3D {
 		this.quaternion.premultiply(_quat);
 	}
 
+	updateCamera() {
+		this.cameraPivot.rotation.y += (this.cameraYaw - this.cameraPivot.rotation.y) * 0.1;
+		this.cameraPivot.rotation.x += (this.cameraPitch - this.cameraPivot.rotation.x) * 0.1;
+	}
 	toggleCamera() {
 		this.isCameraFirstPerson = !this.isCameraFirstPerson;
 
 		this.isCameraFirstPerson ? this.setFirstPersonCamera() : this.setThirdPersonCamera();
 	}
+
 	setFirstPersonCamera() {
 		this.camera.position.set(0, this.height * 0.8, 0);
 		this.camera.rotation.set(-0.4, 0, 0);
@@ -89,12 +102,11 @@ class Player extends THREE.Object3D {
 
 	setThirdPersonCamera() {
 		this.camera.position.set(0, this.height * 3, this.height * 6);
-		this.camera.rotation.set(-0.6, 0, 0);
 	}
 
 	activateDebugMode() {
 		this.playerModel.add(new THREE.AxesHelper(1));
 	}
 }
-
 export default Player;
+

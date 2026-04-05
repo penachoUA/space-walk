@@ -28,6 +28,8 @@ class Game {
 		if (this.keys['KeyA'] || this.keys['ArrowLeft']) this.player.turn(1);
 		if (this.keys['KeyD'] || this.keys['ArrowRight']) this.player.turn(-1);
 
+		this.player.updateCamera();
+
 		renderer.render(scene, this.surfaceMode ? this.player.camera : this.camera);
 	}
 
@@ -110,6 +112,16 @@ class Game {
 
 		window.addEventListener('keyup', (e) => this.keys[e.code] = false);
 
+		window.addEventListener('mousemove', (e) => {
+			if (!this.surfaceMode) return;
+
+			this.player.cameraYaw -= e.movementX * this.player.mouseSensitivity;
+			this.player.cameraPitch -= e.movementY * this.player.mouseSensitivity;
+
+			// Clamp pitch so camera doesn't flip
+			this.player.cameraPitch = Math.max(-1.5, Math.min(1.5, this.player.cameraPitch));
+		});
+
 		window.addEventListener('resize', () => {
 			const width = window.innerWidth;
 			const height = window.innerHeight;
@@ -130,5 +142,5 @@ class Game {
 		this.player.activateDebugMode();
 	}
 }
-
 export default Game;
+
