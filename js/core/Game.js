@@ -15,7 +15,7 @@ class Game {
 		this._initSystem();
 		this._initPlayer();
 		this._initCameras();
-		this._initEventListeners();
+		this._initResizeHandler();
 
 		this.setCameraMode('system');
 
@@ -25,20 +25,91 @@ class Game {
 
 	update() {
 		this.player.isMoving = false;
-
 		this.planets.forEach((p) => p.move());
 
-		if (this.cameraMode === 'surface') {
+		// Handle player movement
+		if (this.cameraMode === 'thirdPerson' || this.cameraMode === 'firstPerson') {
 			if (this.input.isPressed('KeyW') || this.input.isPressed('ArrowUp')) this.player.move(1);
 			if (this.input.isPressed('KeyS') || this.input.isPressed('ArrowDown')) this.player.move(-1);
 			if (this.input.isPressed('KeyA') || this.input.isPressed('ArrowLeft')) this.player.turn(1);
 			if (this.input.isPressed('KeyD') || this.input.isPressed('ArrowRight')) this.player.turn(-1);
 		}
 
-		this.cameraRig.update(this.player.isMoving);
+		// Handle camera mode changes
+		if (this.input.isTapped('KeyV')) {
+			this.cycleCameraMode();
+		}
+
+		// Handle planet change
+		for (let i = 0; i < this.planets.length; i++) {
+			if (this.input.isTapped(`Digit${i + 1}`)) {
+				this.changePlanet(i);
+			}
+		}
+
+		// Handle camera movement
+		if (this.cameraMode !== 'system') {
+			this.cameraRig.update(this.input, this.player.isMoving);
+		}
 
 		const activeCamera = (this.cameraMode === 'system') ? this.systemCamera : this.cameraRig.camera;
 		renderer.render(scene, activeCamera);
+
+		this.input.afterUpdate();
+	}
+
+	setCameraMode(mode) {
+		this.cameraMode = mode;
+
+		switch (this.cameraMode) {
+			case 'system':
+				scene.add(this.cameraRig);
+				this.orbitControls.enabled = true;
+				break;
+			case 'thirdPerson':
+				this.player.playerModel.add(this.cameraRig);
+				this.cameraRig.position.set(0, this.player.height * 0.8, 0);
+				this.cameraRig.camera.position.set(0, this.player.height * 2, this.player.height * 6);
+				this.orbitControls.enabled = false;
+				break;
+			case 'firstPerson':
+				this.player.playerModel.add(this.cameraRig);
+				this.cameraRig.position.set(0, this.player.height * 0.8, 0);
+				this.cameraRig.camera.position.set(0, 0, 0);
+				this.orbitControls.enabled = false;
+				break;
+			case 'planet':
+				// TODO: Add more freedom and sensitivity
+				this.currentPlanet.add(this.cameraRig);
+				this.cameraRig.position.set(0, 0, 0);
+				this.cameraRig.camera.position.set(0, 0, this.currentPlanet.radius * 2);
+				this.orbitControls.enabled = false;
+				break;
+		}
+	}
+
+	cycleCameraMode() {
+		switch (this.cameraMode) {
+			case 'system':
+				this.setCameraMode('thirdPerson');
+				break;
+			case 'thirdPerson':
+				this.setCameraMode('firstPerson');
+				break;
+			case 'firstPerson':
+				this.setCameraMode('planet');
+				break;
+			case 'planet':
+				this.setCameraMode('system');
+				break;
+		}
+
+	}
+
+	changePlanet(i) {
+		this.currentPlanet = this.planets[i];
+		this.player.moveToPlanet(this.currentPlanet);
+		this.setCameraMode(this.cameraMode); // Refresh the rig parenting
 	}
 
 	_initLighting() {
@@ -108,62 +179,7 @@ class Game {
 		this.orbitControls.update();
 	}
 
-	_initEventListeners() {
-		this.keys = {};
-
-		// Mouse input
-		window.addEventListener('mousedown', (e) => {
-			if (this.cameraMode === 'system') return;
-			this.cameraRig.onMouseDown(e);
-		});
-
-		window.addEventListener('mouseup', (e) => {
-			if (this.cameraMode === 'system') return;
-			this.cameraRig.onMouseUp(e);
-		});
-
-		window.addEventListener('mouseleave', () => {
-			this.cameraRig.isDragging = false;
-		});
-
-		window.addEventListener('mousemove', (e) => {
-			if (this.cameraMode === 'system') return;
-			this.cameraRig.onMouseMove(e);
-		});
-
-		// Keyboard input
-		window.addEventListener('keydown', (e) => {
-			this.keys[e.code] = true;
-
-			if (e.code === 'Space') {
-				if (this.cameraMode === 'system') {
-					this.setCameraMode('surface');
-				} else {
-					this.setCameraMode('system');
-				}
-			}
-
-			if (e.code === 'KeyM') {
-				if (this.cameraMode == 'system') return;
-				this.cameraMode === 'surface' ?
-					this.setCameraMode('planet') :
-					this.setCameraMode('surface');
-			}
-			// Jump between planets
-			if (e.code.startsWith("Digit")) {
-				const number = parseInt(e.code.replace('Digit', '')) - 1;
-				if (number >= 0 && number < this.planets.length) {
-					this.currentPlanet = this.planets[number];
-
-					this.player.moveToPlanet(this.currentPlanet);
-					this.setCameraMode(this.cameraMode);
-				}
-			}
-		});
-
-		window.addEventListener('keyup', (e) => this.keys[e.code] = false);
-
-		// Window resizing
+	_initResizeHandler() {
 		window.addEventListener('resize', () => {
 			const width = window.innerWidth;
 			const height = window.innerHeight;
@@ -183,27 +199,6 @@ class Game {
 		this.player.activateDebugMode();
 	}
 
-	setCameraMode(mode) {
-		this.cameraMode = mode;
-
-		if (mode === 'surface') {
-			this.player.playerModel.add(this.cameraRig);
-			this.cameraRig.position.set(0, this.player.height * 0.8, 0);
-			this.cameraRig.camera.position.set(0, this.player.height * 2, this.player.height * 6);
-			this.orbitControls.enabled = false;
-		}
-		else if (mode === 'planet') {
-			// TODO: Add more freedom and sensitivity
-			this.currentPlanet.add(this.cameraRig);
-			this.cameraRig.position.set(0, 0, 0);
-			this.cameraRig.camera.position.set(0, 0, this.currentPlanet.radius * 2);
-			this.orbitControls.enabled = false;
-		}
-		else if (mode === 'system') {
-			scene.add(this.cameraRig);
-			this.orbitControls.enabled = true;
-		}
-	}
 }
 export default Game;
 

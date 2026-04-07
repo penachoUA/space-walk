@@ -1,20 +1,34 @@
 class InputHandler {
 	constructor() {
 		this.keys = {};
+		this.previousKeys = {};
 		this.mouse = {
 			isDown: false,
 			x: 0,
 			y: 0,
-			movementX: 0,
-			movementY: 0
+			moveX: 0,
+			moveY: 0
 		};
 
 		this._initKeyboardInput();
 		this._initMouseInput();
 	}
 
+	// Set state for next frame
+	afterUpdate() {
+		this.previousKeys = { ...this.keys };
+
+		// Clear mouse deltas
+		this.mouse.moveX = 0;
+		this.mouse.moveY = 0;
+	}
+
 	isPressed(code) {
 		return !!this.keys[code];
+	}
+
+	isTapped(code) {
+		return !!this.keys[code] && !this.previousKeys[code];
 	}
 
 	_initKeyboardInput() {
@@ -25,7 +39,6 @@ class InputHandler {
 
 	_initMouseInput() {
 		window.addEventListener('pointerdown', (e) => {
-			// e.button === 0 is the Left Mouse Button
 			if (e.button === 0) this.mouse.isDown = true;
 		});
 
@@ -37,12 +50,12 @@ class InputHandler {
 			this.mouse.x = e.clientX;
 			this.mouse.y = e.clientY;
 
-			// Deltas since last frame
-			this.mouse.movementX = e.movementX;
-			this.mouse.movementY = e.movementY;
+			// Update deltas
+			this.mouse.moveX = e.movementX;
+			this.mouse.moveY = e.movementY;
 		});
 
-		// If the mouse leaves the window, stop dragging
+		// Stop dragging if the mouse leaves the window
 		window.addEventListener('mouseleave', () => {
 			this.mouse.isDown = false;
 		});

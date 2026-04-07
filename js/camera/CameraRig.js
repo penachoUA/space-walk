@@ -15,34 +15,26 @@ class CameraRig extends THREE.Object3D {
 
 		this.targetYaw = 0;
 		this.targetPitch = -0.6;
-		this.sensitivity = 0.001;
+		this.sensitivity = 0.002;
 
 		this.isDragging = false;
 		this.isCentering = false;
 	}
 
-	onMouseDown(e) {
-		if (e.button === 0) this.isDragging = true;
-	}
+	update(input, isTargetMoving = false) {
+		const isDragging = input.mouse.isDown;
 
-	onMouseUp(e) {
-		if (e.button === 0) this.isDragging = false;
-	}
+		if (isDragging) {
+			this.isCentering = false;
 
-	onMouseMove(e) {
-		if (!this.isDragging) return;
+			this.targetYaw -= input.mouse.moveX * this.sensitivity;
+			this.targetPitch -= input.mouse.moveY * this.sensitivity;
 
-		this.isCentering = false;
+			this.targetPitch = Math.max(-1.5, Math.min(0.3, this.targetPitch));
+		}
 
-		this.targetYaw -= e.movementX * this.sensitivity;
-		this.targetPitch -= e.movementY * this.sensitivity;
-
-		this.targetPitch = Math.max(-1.5, Math.min(0.3, this.targetPitch));
-	}
-
-	update(isTargetMoving = false) {
 		if (this.autoCenterEnabled) {
-			if (!this.isDragging && isTargetMoving) {
+			if (!isDragging && isTargetMoving) {
 				this.isCentering = true;
 			}
 			if (this.isCentering) this._autoCenter();
