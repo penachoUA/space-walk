@@ -5,6 +5,7 @@ import Planet from '../entities/Planet.js';
 import Star from '../entities/Star.js';
 import Player from '../entities/Player.js';
 import PlayerController from '../controllers/PlayerController.js'
+import CameraController from '../controllers/CameraController.js';
 import CameraRig from '../camera/CameraRig.js';
 import InputHandler from './InputHandler.js';
 
@@ -46,8 +47,8 @@ class Game {
 		}
 
 		// Handle camera movement
-		if (this.cameraMode !== 'system') {
-			this.cameraRig.update(this.input, this.player.isMoving);
+		if (this.cameraMode !== 'system' && this.activeCameraController) {
+			this.activeCameraController.update(this.player.isMoving);
 		}
 
 		const activeCamera = (this.cameraMode === 'system') ? this.systemCamera : this.cameraRig.camera;
@@ -58,6 +59,12 @@ class Game {
 
 	setCameraMode(mode) {
 		this.cameraMode = mode;
+
+		if (this.cameraControllers[mode]) {
+			this.activeCameraController = this.cameraControllers[mode];
+		} else {
+			this.activeCameraController = null;
+		}
 
 		switch (this.cameraMode) {
 			case 'system':
@@ -168,6 +175,29 @@ class Game {
 
 	_initControllers() {
 		this.playerController = new PlayerController(this.player, this.input);
+
+		this.cameraControllers = {
+			thirdPerson: new CameraController(this.cameraRig, this.input, {
+				sensitivity: 0.002,
+				minPitch: -1.5,
+				maxPitch: 0.3,
+				autoCenter: true
+			}),
+			firstPerson: new CameraController(this.cameraRig, this.input, {
+				sensitivity: 0.001,
+				minPitch: -1.0,
+				maxPitch: 1.0,
+				autoCenter: false
+			}),
+			planet: new CameraController(this.cameraRig, this.input, {
+				sensitivity: 0.0035,
+				minPitch: -Math.PI / 2,
+				maxPitch: Math.PI / 2,
+				autoCenter: false
+			})
+		};
+
+		this.activeCameraController = this.cameraControllers.thirdPerson;
 	}
 
 	_initCameras() {
