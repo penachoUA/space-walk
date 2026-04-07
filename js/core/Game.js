@@ -5,9 +5,12 @@ import Planet from '../entities/Planet.js';
 import Star from '../entities/Star.js';
 import Player from '../entities/Player.js';
 import CameraRig from '../camera/CameraRig.js';
+import InputHandler from './InputHandler.js';
 
 class Game {
 	constructor(debug = false) {
+		this.input = new InputHandler();
+
 		this._initLighting();
 		this._initSystem();
 		this._initPlayer();
@@ -26,10 +29,10 @@ class Game {
 		this.planets.forEach((p) => p.move());
 
 		if (this.cameraMode === 'surface') {
-			if (this.keys['KeyW'] || this.keys['ArrowUp']) this.player.move(1);
-			if (this.keys['KeyS'] || this.keys['ArrowDown']) this.player.move(-1);
-			if (this.keys['KeyA'] || this.keys['ArrowLeft']) this.player.turn(1);
-			if (this.keys['KeyD'] || this.keys['ArrowRight']) this.player.turn(-1);
+			if (this.input.isPressed('KeyW') || this.input.isPressed('ArrowUp')) this.player.move(1);
+			if (this.input.isPressed('KeyS') || this.input.isPressed('ArrowDown')) this.player.move(-1);
+			if (this.input.isPressed('KeyA') || this.input.isPressed('ArrowLeft')) this.player.turn(1);
+			if (this.input.isPressed('KeyD') || this.input.isPressed('ArrowRight')) this.player.turn(-1);
 		}
 
 		this.cameraRig.update(this.player.isMoving);
