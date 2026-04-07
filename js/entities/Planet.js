@@ -53,6 +53,7 @@ class Planet extends THREE.Object3D {
 			this.mesh.add(meshAxes);
 
 			this.createSurfaceGrid();
+			this.createOrbitPath();
 
 			this.mesh.material.wireframe = true;
 			this.debug.visible = true;
@@ -87,6 +88,33 @@ class Planet extends THREE.Object3D {
 
 		const line = new THREE.LineSegments(edges, lineMaterial);
 		this.debug.add(line);
+	}
+
+	createOrbitPath() {
+		const segments = 128;
+		const points = [];
+
+		for (let i = 0; i <= segments; i++) {
+			const angle = (i / segments) * Math.PI * 2;
+
+			const x = Math.sin(angle) * this.orbitRadius;
+			const y = Math.sin(angle) * this.orbitRadius * Math.sin(this.orbitInclination);
+			const z = Math.cos(angle) * this.orbitRadius;
+
+			points.push(new THREE.Vector3(x, y, z));
+		}
+
+		const geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+		const material = new THREE.LineBasicMaterial({
+			color: this.mesh.material.color,
+			transparent: true,
+			opacity: 0.5
+		});
+
+		const orbitLine = new THREE.LineLoop(geometry, material);
+
+		this.parent.add(orbitLine);
 	}
 }
 

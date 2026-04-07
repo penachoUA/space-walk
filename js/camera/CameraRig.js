@@ -11,7 +11,6 @@ class CameraRig extends THREE.Object3D {
 		this.add(this.yaw);
 		this.yaw.add(this.pitch);
 		this.pitch.add(this.camera);
-
 	}
 
 	setRotation(yaw, pitch) {

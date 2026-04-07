@@ -51,6 +51,7 @@ class Game {
 			this.activeCameraController.update(this.player.isMoving);
 		}
 
+		// TODO: Generalize System camera into CameraRig??
 		const activeCamera = (this.cameraMode === 'system') ? this.systemCamera : this.cameraRig.camera;
 		renderer.render(scene, activeCamera);
 
@@ -84,7 +85,6 @@ class Game {
 				this.orbitControls.enabled = false;
 				break;
 			case 'planet':
-				// TODO: Add more freedom and sensitivity
 				this.currentPlanet.add(this.cameraRig);
 				this.cameraRig.position.set(0, 0, 0);
 				this.cameraRig.camera.position.set(0, 0, this.currentPlanet.radius * 2);
