@@ -16,11 +16,9 @@ class Player extends THREE.Object3D {
 		this.turnSpeed = speed;
 		this.radius = height * 0.25;
 		this.heading = 0;
-		this.isCameraFirstPerson = false;
 		this.isMoving = false;
 
 		this._setupVisuals();
-		this._setupCamera();
 	}
 
 	_setupVisuals() {
@@ -36,16 +34,6 @@ class Player extends THREE.Object3D {
 		this.mesh.position.y = this.height / 2;
 
 		this.playerModel.add(this.mesh);
-	}
-
-	_setupCamera() {
-		this.cameraPivot = new THREE.Object3D();
-		this.playerModel.add(this.cameraPivot);
-
-		this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 10000);
-		this.cameraPivot.add(this.camera);
-
-		this.setThirdPersonCamera();
 	}
 
 	moveToPlanet(planet) {
@@ -81,21 +69,6 @@ class Player extends THREE.Object3D {
 		// Apply rotation to pivot
 		_quat.setFromAxisAngle(_vector, -moveStep);
 		this.quaternion.premultiply(_quat);
-	}
-
-	toggleCamera() {
-		this.isCameraFirstPerson = !this.isCameraFirstPerson;
-
-		this.isCameraFirstPerson ? this.setFirstPersonCamera() : this.setThirdPersonCamera();
-	}
-
-	setFirstPersonCamera() {
-		this.camera.position.set(0, this.height * 0.8, 0);
-		this.camera.rotation.set(-0.4, 0, 0);
-	}
-
-	setThirdPersonCamera() {
-		this.camera.position.set(0, this.height * 3, this.height * 6);
 	}
 
 	activateDebugMode() {

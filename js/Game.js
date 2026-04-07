@@ -4,20 +4,19 @@ import { renderer, scene } from './scene.js';
 import Planet from './Planet.js';
 import Star from './Star.js';
 import Player from './Player.js';
-import CameraController from './CameraController.js';
+import CameraRig from './CameraRig.js';
 
 class Game {
 	constructor(debug = false) {
-		this.surfaceMode = false;
-
 		this._initLighting();
 		this._initSystem();
 		this._initPlayer();
-		this._initSystemCamera();
+		this._initCameras();
 		this._initEventListeners();
 
-		if (debug) this._activateDebugMode();
+		this.setCameraMode('system');
 
+		if (debug) this._activateDebugMode();
 		renderer.setAnimationLoop(() => this.update());
 	}
 
@@ -26,14 +25,17 @@ class Game {
 
 		this.planets.forEach((p) => p.move());
 
-		if (this.keys['KeyW'] || this.keys['ArrowUp']) this.player.move(1);
-		if (this.keys['KeyS'] || this.keys['ArrowDown']) this.player.move(-1);
-		if (this.keys['KeyA'] || this.keys['ArrowLeft']) this.player.turn(1);
-		if (this.keys['KeyD'] || this.keys['ArrowRight']) this.player.turn(-1);
+		if (this.cameraMode === 'surface') {
+			if (this.keys['KeyW'] || this.keys['ArrowUp']) this.player.move(1);
+			if (this.keys['KeyS'] || this.keys['ArrowDown']) this.player.move(-1);
+			if (this.keys['KeyA'] || this.keys['ArrowLeft']) this.player.turn(1);
+			if (this.keys['KeyD'] || this.keys['ArrowRight']) this.player.turn(-1);
+		}
 
-		this.playerCamera.update();
+		this.cameraRig.update(this.player.isMoving);
 
-		renderer.render(scene, this.surfaceMode ? this.player.camera : this.camera);
+		const activeCamera = (this.cameraMode === 'system') ? this.systemCamera : this.cameraRig.camera;
+		renderer.render(scene, activeCamera);
 	}
 
 	_initLighting() {
@@ -84,7 +86,7 @@ class Game {
 		];
 
 		this.planets.forEach((p) => scene.add(p))
-		this.currentPlanet = this.planets[0];
+		this.currentPlanet = this.planets[1];
 	}
 
 	_initPlayer() {
@@ -92,14 +94,14 @@ class Game {
 		this.player.moveToPlanet(this.currentPlanet);
 	}
 
-	_initSystemCamera() {
-		this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
-		this.camera.position.z = 70;
+	_initCameras() {
+		this.systemCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+		this.systemCamera.position.z = 70;
 
-		this.playerCamera = new CameraController(this.player);
+		this.cameraRig = new CameraRig();
 
 		// Orbit Controls
-		this.orbitControls = new OrbitControls(this.camera, renderer.domElement);
+		this.orbitControls = new OrbitControls(this.systemCamera, renderer.domElement);
 		this.orbitControls.update();
 	}
 
@@ -108,21 +110,22 @@ class Game {
 
 		// Mouse input
 		window.addEventListener('mousedown', (e) => {
-			if (!this.surfaceMode) return;
-			this.playerCamera.onMouseDown(e);
+			if (this.cameraMode === 'system') return;
+			this.cameraRig.onMouseDown(e);
 		});
 
 		window.addEventListener('mouseup', (e) => {
-			this.playerCamera.onMouseUp(e);
+			if (this.cameraMode === 'system') return;
+			this.cameraRig.onMouseUp(e);
 		});
 
 		window.addEventListener('mouseleave', () => {
-			this.playerCamera.isDragging = false;
+			this.cameraRig.isDragging = false;
 		});
 
 		window.addEventListener('mousemove', (e) => {
-			if (!this.surfaceMode) return;
-			this.playerCamera.onMouseMove(e);
+			if (this.cameraMode === 'system') return;
+			this.cameraRig.onMouseMove(e);
 		});
 
 		// Keyboard input
@@ -130,10 +133,15 @@ class Game {
 			this.keys[e.code] = true;
 
 			if (e.code === 'Space') {
-				this.surfaceMode = !this.surfaceMode;
-				this.orbitControls.enabled = !this.surfaceMode;
+				if (this.cameraMode === 'system') {
+					this.setCameraMode('surface');
+				} else {
+					this.setCameraMode('system');
+				}
 			}
-			if (e.code === 'KeyV') this.player.toggleCamera();
+			if (e.code === 'KeyM') {
+				this.setCameraMode('planet');
+			}
 		});
 
 		window.addEventListener('keyup', (e) => this.keys[e.code] = false);
@@ -146,8 +154,7 @@ class Game {
 
 			renderer.setSize(width, height);
 
-			// List all cameras that need updating
-			[this.camera, this.player.camera].forEach(cam => {
+			[this.systemCamera, this.cameraRig.camera].forEach(cam => {
 				cam.aspect = aspect;
 				cam.updateProjectionMatrix();
 			});
@@ -157,6 +164,28 @@ class Game {
 	_activateDebugMode() {
 		this.planets.forEach((p) => p.activateDebugMode());
 		this.player.activateDebugMode();
+	}
+
+	setCameraMode(mode) {
+		this.cameraMode = mode;
+
+		if (mode === 'surface') {
+			this.player.playerModel.add(this.cameraRig);
+			this.cameraRig.position.set(0, this.player.height * 0.8, 0);
+			this.cameraRig.camera.position.set(0, this.player.height * 2, this.player.height * 6);
+			this.orbitControls.enabled = false;
+		}
+		else if (mode === 'planet') {
+			// TODO: Add more freedom and sensitivity
+			this.currentPlanet.add(this.cameraRig);
+			this.cameraRig.position.set(0, 0, 0);
+			this.cameraRig.camera.position.set(0, 0, this.currentPlanet.radius * 2);
+			this.orbitControls.enabled = false;
+		}
+		else if (mode === 'system') {
+			scene.add(this.cameraRig);
+			this.orbitControls.enabled = true;
+		}
 	}
 }
 export default Game;
