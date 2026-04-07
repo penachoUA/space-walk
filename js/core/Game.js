@@ -1,10 +1,10 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { renderer, scene } from './scene.js';
-import Planet from './Planet.js';
-import Star from './Star.js';
-import Player from './Player.js';
-import CameraRig from './CameraRig.js';
+import Planet from '../entities/Planet.js';
+import Star from '../entities/Star.js';
+import Player from '../entities/Player.js';
+import CameraRig from '../camera/CameraRig.js';
 
 class Game {
 	constructor(debug = false) {
