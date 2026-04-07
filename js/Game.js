@@ -139,8 +139,22 @@ class Game {
 					this.setCameraMode('system');
 				}
 			}
+
 			if (e.code === 'KeyM') {
-				this.setCameraMode('planet');
+				if (this.cameraMode == 'system') return;
+				this.cameraMode === 'surface' ?
+					this.setCameraMode('planet') :
+					this.setCameraMode('surface');
+			}
+			// Jump between planets
+			if (e.code.startsWith("Digit")) {
+				const number = parseInt(e.code.replace('Digit', '')) - 1;
+				if (number >= 0 && number < this.planets.length) {
+					this.currentPlanet = this.planets[number];
+
+					this.player.moveToPlanet(this.currentPlanet);
+					this.setCameraMode(this.cameraMode);
+				}
 			}
 		});
 
