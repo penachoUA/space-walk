@@ -4,6 +4,7 @@ import { renderer, scene } from './scene.js';
 import Planet from '../entities/Planet.js';
 import Star from '../entities/Star.js';
 import Player from '../entities/Player.js';
+import PlayerController from '../controllers/PlayerController.js'
 import CameraRig from '../camera/CameraRig.js';
 import InputHandler from './InputHandler.js';
 
@@ -15,6 +16,7 @@ class Game {
 		this._initSystem();
 		this._initPlayer();
 		this._initCameras();
+		this._initControllers();
 		this._initResizeHandler();
 
 		this.setCameraMode('system');
@@ -27,12 +29,8 @@ class Game {
 		this.player.isMoving = false;
 		this.planets.forEach((p) => p.move());
 
-		// Handle player movement
 		if (this.cameraMode === 'thirdPerson' || this.cameraMode === 'firstPerson') {
-			if (this.input.isPressed('KeyW') || this.input.isPressed('ArrowUp')) this.player.move(1);
-			if (this.input.isPressed('KeyS') || this.input.isPressed('ArrowDown')) this.player.move(-1);
-			if (this.input.isPressed('KeyA') || this.input.isPressed('ArrowLeft')) this.player.turn(1);
-			if (this.input.isPressed('KeyD') || this.input.isPressed('ArrowRight')) this.player.turn(-1);
+			this.playerController.update();
 		}
 
 		// Handle camera mode changes
@@ -166,6 +164,10 @@ class Game {
 	_initPlayer() {
 		this.player = new Player(0.1, 0.015);
 		this.player.moveToPlanet(this.currentPlanet);
+	}
+
+	_initControllers() {
+		this.playerController = new PlayerController(this.player, this.input);
 	}
 
 	_initCameras() {
