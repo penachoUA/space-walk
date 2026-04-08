@@ -1,6 +1,5 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { renderer, scene } from './scene.js';
 import Planet from '../entities/Planet.js';
 import Star from '../entities/Star.js';
 import Player from '../entities/Player.js';
@@ -9,8 +8,43 @@ import CameraController from '../controllers/CameraController.js';
 import CameraRig from '../camera/CameraRig.js';
 import InputHandler from './InputHandler.js';
 
-class Game {
-	constructor(debug = false) {
+const CONTROLS = {
+	CYCLE_CAMERA: 'KeyV',
+	PLANET_PREFIX: 'Digit',
+};
+
+const CAMERA_MODES = {
+	SYSTEM: 'system',
+	THIRD_PERSON: 'thirdPerson',
+	FIRST_PERSON: 'firstPerson',
+	PLANET: 'planet'
+};
+
+const CAMERA_CONFIGS = {
+	[CAMERA_MODES.THIRD_PERSON]: {
+		sensitivity: 0.002,
+		minPitch: -1.5,
+		maxPitch: 0.3,
+		autoCenter: true
+	},
+	[CAMERA_MODES.FIRST_PERSON]: {
+		sensitivity: 0.001,
+		minPitch: -1.0,
+		maxPitch: 1.0,
+		autoCenter: false
+	},
+	[CAMERA_MODES.PLANET]: {
+		sensitivity: 0.0035,
+		minPitch: -Math.PI / 2,
+		maxPitch: Math.PI / 2,
+		autoCenter: false
+	}
+};
+
+export default class Game {
+	constructor(scene, renderer, debug = false) {
+		this.scene = scene;
+		this.renderer = renderer;
 		this.input = new InputHandler();
 
 		this._initLighting();
@@ -23,37 +57,37 @@ class Game {
 		this.setCameraMode('system');
 
 		if (debug) this._activateDebugMode();
-		renderer.setAnimationLoop(() => this.update());
+		this.renderer.setAnimationLoop(() => this.update());
 	}
 
 	update() {
-		this.player.isMoving = false;
 		this.planets.forEach((p) => p.move());
 
-		if (this.cameraMode === 'thirdPerson' || this.cameraMode === 'firstPerson') {
+		if (this.cameraMode === CAMERA_MODES.THIRD_PERSON || this.cameraMode === CAMERA_MODES.FIRST_PERSON) {
+			this.player.update();
 			this.playerController.update();
 		}
 
 		// Handle camera mode changes
-		if (this.input.isTapped('KeyV')) {
+		if (this.input.isTapped(CONTROLS.CYCLE_CAMERA)) {
 			this.cycleCameraMode();
 		}
 
 		// Handle planet change
 		for (let i = 0; i < this.planets.length; i++) {
-			if (this.input.isTapped(`Digit${i + 1}`)) {
+			if (this.input.isTapped(`${CONTROLS.PLANET_PREFIX}${i + 1}`)) {
 				this.changePlanet(i);
 			}
 		}
 
 		// Handle camera movement
-		if (this.cameraMode !== 'system' && this.activeCameraController) {
+		if (this.cameraMode !== CAMERA_MODES.SYSTEM && this.activeCameraController) {
 			this.activeCameraController.update(this.player.isMoving);
 		}
 
 		// TODO: Generalize System camera into CameraRig??
-		const activeCamera = (this.cameraMode === 'system') ? this.systemCamera : this.cameraRig.camera;
-		renderer.render(scene, activeCamera);
+		const activeCamera = (this.cameraMode === CAMERA_MODES.SYSTEM) ? this.systemCamera : this.cameraRig.camera;
+		this.renderer.render(this.scene, activeCamera);
 
 		this.input.afterUpdate();
 	}
@@ -68,23 +102,23 @@ class Game {
 		}
 
 		switch (this.cameraMode) {
-			case 'system':
-				scene.add(this.cameraRig);
+			case CAMERA_MODES.SYSTEM:
+				this.scene.add(this.cameraRig);
 				this.orbitControls.enabled = true;
 				break;
-			case 'thirdPerson':
+			case CAMERA_MODES.THIRD_PERSON:
 				this.player.playerModel.add(this.cameraRig);
 				this.cameraRig.position.set(0, this.player.height * 0.8, 0);
 				this.cameraRig.camera.position.set(0, this.player.height * 2, this.player.height * 6);
 				this.orbitControls.enabled = false;
 				break;
-			case 'firstPerson':
+			case CAMERA_MODES.FIRST_PERSON:
 				this.player.playerModel.add(this.cameraRig);
 				this.cameraRig.position.set(0, this.player.height * 0.8, 0);
 				this.cameraRig.camera.position.set(0, 0, 0);
 				this.orbitControls.enabled = false;
 				break;
-			case 'planet':
+			case CAMERA_MODES.PLANET:
 				this.currentPlanet.add(this.cameraRig);
 				this.cameraRig.position.set(0, 0, 0);
 				this.cameraRig.camera.position.set(0, 0, this.currentPlanet.radius * 2);
@@ -94,24 +128,14 @@ class Game {
 	}
 
 	cycleCameraMode() {
-		switch (this.cameraMode) {
-			case 'system':
-				this.setCameraMode('thirdPerson');
-				break;
-			case 'thirdPerson':
-				this.setCameraMode('firstPerson');
-				break;
-			case 'firstPerson':
-				this.setCameraMode('planet');
-				break;
-			case 'planet':
-				this.setCameraMode('system');
-				break;
-		}
-
+		const modesArray = Object.values(CAMERA_MODES);
+		const i = modesArray.indexOf(this.cameraMode);
+		this.setCameraMode(modesArray[(i + 1) % modesArray.length]);
 	}
 
 	changePlanet(i) {
+		if (this.cameraMode === CAMERA_MODES.SYSTEM) return;
+
 		this.currentPlanet = this.planets[i];
 		this.player.moveToPlanet(this.currentPlanet);
 		this.setCameraMode(this.cameraMode); // Refresh the rig parenting
@@ -119,7 +143,7 @@ class Game {
 
 	_initLighting() {
 		this.ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
-		scene.add(this.ambientLight);
+		this.scene.add(this.ambientLight);
 	}
 
 	_initSystem() {
@@ -129,7 +153,7 @@ class Game {
 			color: 0xebe5c7
 		});
 
-		scene.add(this.star);
+		this.scene.add(this.star);
 		// Planets
 		this.planets = [
 			new Planet({
@@ -164,36 +188,33 @@ class Game {
 			})
 		];
 
-		this.planets.forEach((p) => scene.add(p))
+		this.planets.forEach((p) => this.scene.add(p))
 		this.currentPlanet = this.planets[1];
 	}
 
 	_initPlayer() {
-		this.player = new Player(0.1, 0.015);
+		this.player = new Player({ height: 0.1, speed: 0.015 });
 		this.player.moveToPlanet(this.currentPlanet);
 	}
 
 	_initControllers() {
-		this.playerController = new PlayerController(this.player, this.input);
+		this.playerController = new PlayerController({ player: this.player, input: this.input });
 
 		this.cameraControllers = {
-			thirdPerson: new CameraController(this.cameraRig, this.input, {
-				sensitivity: 0.002,
-				minPitch: -1.5,
-				maxPitch: 0.3,
-				autoCenter: true
+			thirdPerson: new CameraController({
+				cameraRig: this.cameraRig,
+				input: this.input,
+				config: CAMERA_CONFIGS.THIRD_PERSON
 			}),
-			firstPerson: new CameraController(this.cameraRig, this.input, {
-				sensitivity: 0.001,
-				minPitch: -1.0,
-				maxPitch: 1.0,
-				autoCenter: false
+			firstPerson: new CameraController({
+				cameraRig: this.cameraRig,
+				input: this.input,
+				config: CAMERA_CONFIGS.FIRST_PERSON
 			}),
-			planet: new CameraController(this.cameraRig, this.input, {
-				sensitivity: 0.0035,
-				minPitch: -Math.PI / 2,
-				maxPitch: Math.PI / 2,
-				autoCenter: false
+			planet: new CameraController({
+				cameraRig: this.cameraRig,
+				input: this.input,
+				config: CAMERA_CONFIGS.PLANET
 			})
 		};
 
@@ -207,7 +228,7 @@ class Game {
 		this.cameraRig = new CameraRig();
 
 		// Orbit Controls
-		this.orbitControls = new OrbitControls(this.systemCamera, renderer.domElement);
+		this.orbitControls = new OrbitControls(this.systemCamera, this.renderer.domElement);
 		this.orbitControls.update();
 	}
 
@@ -217,7 +238,7 @@ class Game {
 			const height = window.innerHeight;
 			const aspect = width / height;
 
-			renderer.setSize(width, height);
+			this.renderer.setSize(width, height);
 
 			[this.systemCamera, this.cameraRig.camera].forEach(cam => {
 				cam.aspect = aspect;
@@ -227,10 +248,12 @@ class Game {
 	}
 
 	_activateDebugMode() {
-		this.planets.forEach((p) => p.activateDebugMode());
+		this.planets.forEach((p) => {
+			p.activateDebugMode();
+			if (p.orbitPath) this.scene.add(p.orbitPath);
+		});
 		this.player.activateDebugMode();
 	}
 
 }
-export default Game;
 

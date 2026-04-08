@@ -1,16 +1,27 @@
-class CameraController {
-	constructor(cameraRig, input, config = {}) {
+const DEFAULTS = {
+	YAW: 0,
+	PITCH: -0.6,
+	SENSITIVITY: 0.002,
+	MIN_PITCH: -1.5,
+	MAX_PITCH: 0.3,
+	AUTO_CENTER: true,
+	CENTERING_SPEED: 0.03,
+	CENTERING_THRESHOLD: 0.001,
+};
+
+export default class CameraController {
+	constructor({ cameraRig, input, config = {} }) {
 		this.cameraRig = cameraRig;
 		this.input = input;
 
 		// Default values if none are provided
-		this.currentYaw = config.yaw ?? 0;
-		this.currentPitch = config.pitch ?? -0.6;
-		this.sensitivity = config.sensitivity ?? 0.002;
-		this.minPitch = config.minPitch ?? -1.5;
-		this.maxPitch = config.maxPitch ?? 0.3;
+		this.currentYaw = config.yaw ?? DEFAULTS.YAW;
+		this.currentPitch = config.pitch ?? DEFAULTS.PITCH;
+		this.sensitivity = config.sensitivity ?? DEFAULTS.SENSITIVITY;
+		this.minPitch = config.minPitch ?? DEFAULTS.MIN_PITCH;
+		this.maxPitch = config.maxPitch ?? DEFAULTS.MAX_PITCH;
 
-		this.autoCenterEnabled = config.autoCenter ?? true;
+		this.autoCenterEnabled = config.autoCenter ?? DEFAULTS.AUTO_CENTER;
 		this.isCentering = false;
 	}
 
@@ -36,18 +47,15 @@ class CameraController {
 	}
 
 	_autoCenter() {
-		const homeYaw = 0;
-		const homePitch = -0.4;
+		this.currentYaw += (DEFAULTS.YAW - this.currentYaw) * DEFAULTS.CENTERING_SPEED;
+		this.currentPitch += (DEFAULTS.PITCH - this.currentPitch) * DEFAULTS.CENTERING_SPEED;
 
-		this.currentYaw += (homeYaw - this.currentYaw) * 0.03;
-		this.currentPitch += (homePitch - this.currentPitch) * 0.03;
-
-		if (Math.abs(this.currentYaw - homeYaw) < 0.001 &&
-			Math.abs(this.currentPitch - homePitch) < 0.001) {
-			this.currentYaw = homeYaw;
-			this.currentPitch = homePitch;
+		if (Math.abs(this.currentYaw - DEFAULTS.YAW) < DEFAULTS.CENTERING_THRESHOLD &&
+			Math.abs(this.currentPitch - DEFAULTS.PITCH) < DEFAULTS.CENTERING_THRESHOLD) {
+			this.currentYaw = DEFAULTS.YAW;
+			this.currentPitch = DEFAULTS.PITCH;
 			this.isCentering = false;
 		}
 	}
 }
-export default CameraController;
+

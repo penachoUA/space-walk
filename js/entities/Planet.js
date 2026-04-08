@@ -1,11 +1,18 @@
 import * as THREE from 'three';
 
-class Planet extends THREE.Object3D {
+const CONFIG = {
+	SPHERE_SEGMENTS: 32,
+	ORBIT_LINE_SEGMENTS: 128,
+	PLANET_AXES_SIZE: 5,
+	MESH_AXES_SIZE: 3,
+	DEBUG_OPACITY: 0.5
+};
+
+export default class Planet extends THREE.Object3D {
 	constructor({ radius, color, orbitRadius, orbitSpeed, orbitAngle, orbitInclination, rotationSpeed, rotationAxis }) {
 		super();
 
-		const segments = 32;
-		const geometry = new THREE.SphereGeometry(radius, segments, segments);
+		const geometry = new THREE.SphereGeometry(radius, CONFIG.SPHERE_SEGMENTS, CONFIG.SPHERE_SEGMENTS);
 		const material = new THREE.MeshToonMaterial({ color });
 		this.mesh = new THREE.Mesh(geometry, material);
 		this.add(this.mesh);
@@ -23,44 +30,45 @@ class Planet extends THREE.Object3D {
 		this.rotationSpeed = rotationSpeed;
 
 		// Visual debugging features
+		this.orbitPath = null;
 		this.debug = new THREE.Object3D();
 		this.add(this.debug);
 		this.debug.visible = false;
 	}
 
 	move() {
-		this.orbit();
-		this.rotate();
-	}
-
-	orbit() {
-		this.orbitAngle += this.orbitSpeed;
-		this.position.x = Math.sin(this.orbitAngle) * this.orbitRadius;
-		this.position.y = Math.sin(this.orbitAngle) * this.orbitRadius * Math.sin(this.orbitInclination);
-		this.position.z = Math.cos(this.orbitAngle) * this.orbitRadius;
-	}
-
-	rotate() {
-		this.mesh.rotation.y += this.rotationSpeed;
+		this._orbit();
+		this._rotate();
 	}
 
 	activateDebugMode() {
 		if (this.debug.children.length === 0) {
-			const planetAxes = new THREE.AxesHelper(this.radius + 5);
+			const planetAxes = new THREE.AxesHelper(this.radius + CONFIG.PLANET_AXES_SIZE);
 			this.debug.add(planetAxes);
 
-			const meshAxes = new THREE.AxesHelper(this.radius + 3);
+			const meshAxes = new THREE.AxesHelper(this.radius + CONFIG.MESH_AXES_SIZE);
 			this.mesh.add(meshAxes);
 
-			this.createSurfaceGrid();
-			this.createOrbitPath();
+			this._createSurfaceGrid();
+			this._createOrbitPath();
 
 			this.mesh.material.wireframe = true;
 			this.debug.visible = true;
 		}
 	}
 
-	createSurfaceGrid() {
+	_orbit() {
+		this.orbitAngle += this.orbitSpeed;
+		this.position.x = Math.sin(this.orbitAngle) * this.orbitRadius;
+		this.position.y = Math.sin(this.orbitAngle) * this.orbitRadius * Math.sin(this.orbitInclination);
+		this.position.z = Math.cos(this.orbitAngle) * this.orbitRadius;
+	}
+
+	_rotate() {
+		this.mesh.rotation.y += this.rotationSpeed;
+	}
+
+	_createSurfaceGrid() {
 		const edges = new THREE.EdgesGeometry(this.mesh.geometry);
 
 		const count = edges.attributes.position.count;
@@ -73,7 +81,7 @@ class Planet extends THREE.Object3D {
 			const vertexY = positions[vertex * 3 + 1];
 			const t = (vertexY + this.radius) / (2 * this.radius);
 
-			tempColor.setHSL(t, 1, 0.5);
+			tempColor.setHSL(t, 1, CONFIG.DEBUG_OPACITY);
 
 			colors[vertex * 3] = tempColor.r;
 			colors[vertex * 3 + 1] = tempColor.g;
@@ -90,8 +98,8 @@ class Planet extends THREE.Object3D {
 		this.debug.add(line);
 	}
 
-	createOrbitPath() {
-		const segments = 128;
+	_createOrbitPath() {
+		const segments = CONFIG.ORBIT_LINE_SEGMENTS;
 		const points = [];
 
 		for (let i = 0; i <= segments; i++) {
@@ -109,13 +117,10 @@ class Planet extends THREE.Object3D {
 		const material = new THREE.LineBasicMaterial({
 			color: this.mesh.material.color,
 			transparent: true,
-			opacity: 0.5
+			opacity: CONFIG.DEBUG_OPACITY,
 		});
 
-		const orbitLine = new THREE.LineLoop(geometry, material);
-
-		this.parent.add(orbitLine);
+		this.orbitPath = new THREE.LineLoop(geometry, material);
 	}
 }
 
-export default Planet;

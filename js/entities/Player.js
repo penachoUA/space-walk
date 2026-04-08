@@ -5,35 +5,29 @@ const _quat = new THREE.Quaternion();
 const _up = new THREE.Vector3(0, 1, 0);
 const _right = new THREE.Vector3(1, 0, 0);
 
+const CONFIG = {
+	HEIGHT_RATIO: 0.8,
+	RADIUS_RATIO: 0.25,
+	COLOR: 0x00ff00,
+	DEFAULT_HEIGHT: 0.1,
+	DEFAULT_SPEED: 0.015
+};
+
 // Player is composed of a pivot at the center of the planet and the actual model placed
 // at the surface. This facilitates rotation: rotate the pivot and the model follows
-class Player extends THREE.Object3D {
-	constructor(height, speed) {
+export default class Player extends THREE.Object3D {
+	constructor({ height = CONFIG.DEFAULT_HEIGHT, speed = CONFIG.DEFAULT_SPEED }) {
 		super();
 
 		this.height = height;
 		this.speed = speed;
 		this.turnSpeed = speed;
-		this.radius = height * 0.25;
+		this.radius = height * CONFIG.RADIUS_RATIO;
+
 		this.heading = 0;
 		this.isMoving = false;
 
 		this._setupVisuals();
-	}
-
-	_setupVisuals() {
-		this.playerModel = new THREE.Group();
-		this.add(this.playerModel);
-
-		// Build the model
-		const geometry = new THREE.CylinderGeometry(this.radius, this.radius, this.height);
-		const material = new THREE.MeshToonMaterial({ color: 0x00ff00 });
-		this.mesh = new THREE.Mesh(geometry, material);
-
-		// Move mesh so feet are at surface level
-		this.mesh.position.y = this.height / 2;
-
-		this.playerModel.add(this.mesh);
 	}
 
 	moveToPlanet(planet) {
@@ -48,6 +42,10 @@ class Player extends THREE.Object3D {
 		this.playerModel.position.set(0, planet.radius, 0);
 
 		planet.add(this);
+	}
+
+	update() {
+		this.isMoving = false;
 	}
 
 	turn(direction = 1) {
@@ -74,6 +72,20 @@ class Player extends THREE.Object3D {
 	activateDebugMode() {
 		this.playerModel.add(new THREE.AxesHelper(1));
 	}
+
+	_setupVisuals() {
+		this.playerModel = new THREE.Group();
+		this.add(this.playerModel);
+
+		// Build the model
+		const geometry = new THREE.CylinderGeometry(this.radius, this.radius, this.height);
+		const material = new THREE.MeshToonMaterial({ color: CONFIG.COLOR });
+		this.mesh = new THREE.Mesh(geometry, material);
+
+		// Move mesh so feet are at surface level
+		this.mesh.position.y = this.height / 2;
+
+		this.playerModel.add(this.mesh);
+	}
 }
-export default Player;
 
