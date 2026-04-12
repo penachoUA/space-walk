@@ -1,5 +1,4 @@
 import * as THREE from 'three'
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import Planet from '../entities/Planet.js';
 import Star from '../entities/Star.js';
 import Player from '../entities/Player.js';
@@ -31,13 +30,20 @@ const CAMERA_CONFIGS = {
 		sensitivity: 0.001,
 		minPitch: -1.0,
 		maxPitch: 1.0,
-		autoCenter: false
+		autoCenter: true
 	},
 	[CAMERA_MODES.PLANET]: {
 		sensitivity: 0.0035,
 		minPitch: -Math.PI / 2,
 		maxPitch: Math.PI / 2,
 		autoCenter: false
+	},
+	[CAMERA_MODES.SYSTEM]: {
+		sensitivity: 0.003,
+		minPitch: -Math.PI / 2,
+		maxPitch: Math.PI / 2,
+		autoCenter: false,
+		pitch: -0.2
 	}
 };
 
@@ -46,11 +52,11 @@ export default class Game {
 		this.scene = scene;
 		this.renderer = renderer;
 		this.input = new InputHandler();
+		this.cameraRig = new CameraRig();
 
 		this._initLighting();
 		this._initSystem();
 		this._initPlayer();
-		this._initCameras();
 		this._initControllers();
 		this._initResizeHandler();
 
@@ -80,14 +86,9 @@ export default class Game {
 			}
 		}
 
-		// Handle camera movement
-		if (this.cameraMode !== CAMERA_MODES.SYSTEM && this.activeCameraController) {
-			this.activeCameraController.update(this.player.isMoving);
-		}
-
-		// TODO: Generalize System camera into CameraRig??
-		const activeCamera = (this.cameraMode === CAMERA_MODES.SYSTEM) ? this.systemCamera : this.cameraRig.camera;
-		this.renderer.render(this.scene, activeCamera);
+		// Handle camera
+		this.activeCameraController.update(this.player.isMoving);
+		this.renderer.render(this.scene, this.cameraRig.camera);
 
 		this.input.afterUpdate();
 	}
@@ -122,7 +123,13 @@ export default class Game {
 
 			case CAMERA_MODES.SYSTEM:
 				this.cameraRig.addTo(this.scene);
+				this.cameraRig.setPosition(0, 0, 0);
+				this.cameraRig.setCameraPosition(0, 0, 70);
 				break;
+		}
+
+		if (this.activeCameraController) {
+			this.activeCameraController.reset();
 		}
 	}
 
@@ -203,32 +210,27 @@ export default class Game {
 			thirdPerson: new CameraController({
 				cameraRig: this.cameraRig,
 				input: this.input,
-				config: CAMERA_CONFIGS.THIRD_PERSON
+				config: CAMERA_CONFIGS[CAMERA_MODES.THIRD_PERSON]
 			}),
 			firstPerson: new CameraController({
 				cameraRig: this.cameraRig,
 				input: this.input,
-				config: CAMERA_CONFIGS.FIRST_PERSON
+				config: CAMERA_CONFIGS[CAMERA_MODES.FIRST_PERSON]
 			}),
 			planet: new CameraController({
 				cameraRig: this.cameraRig,
 				input: this.input,
-				config: CAMERA_CONFIGS.PLANET
+				config: CAMERA_CONFIGS[CAMERA_MODES.PLANET]
+			}),
+			system: new CameraController({
+				cameraRig: this.cameraRig,
+				input: this.input,
+				config: CAMERA_CONFIGS[CAMERA_MODES.SYSTEM]
 			})
+
 		};
 
 		this.activeCameraController = this.cameraControllers.thirdPerson;
-	}
-
-	_initCameras() {
-		this.systemCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
-		this.systemCamera.position.z = 70;
-
-		this.cameraRig = new CameraRig();
-
-		// Orbit Controls
-		this.orbitControls = new OrbitControls(this.systemCamera, this.renderer.domElement);
-		this.orbitControls.update();
 	}
 
 	_initResizeHandler() {
@@ -239,10 +241,8 @@ export default class Game {
 
 			this.renderer.setSize(width, height);
 
-			[this.systemCamera, this.cameraRig.camera].forEach(cam => {
-				cam.aspect = aspect;
-				cam.updateProjectionMatrix();
-			});
+			this.cameraRig.camera.aspect = aspect;
+			this.cameraRig.camera.updateProjectionMatrix();
 		})
 	}
 

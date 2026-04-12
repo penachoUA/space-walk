@@ -15,14 +15,24 @@ export default class CameraController {
 		this.input = input;
 
 		// Default values if none are provided
-		this.currentYaw = config.yaw ?? DEFAULTS.YAW;
-		this.currentPitch = config.pitch ?? DEFAULTS.PITCH;
+		this.defaultPitch = config.pitch ?? DEFAULTS.PITCH;
+		this.defaultYaw = config.yaw ?? DEFAULTS.YAW;
+
+		this.currentPitch = this.defaultPitch;
+		this.currentYaw = this.defaultYaw;
 		this.sensitivity = config.sensitivity ?? DEFAULTS.SENSITIVITY;
 		this.minPitch = config.minPitch ?? DEFAULTS.MIN_PITCH;
 		this.maxPitch = config.maxPitch ?? DEFAULTS.MAX_PITCH;
 
 		this.autoCenterEnabled = config.autoCenter ?? DEFAULTS.AUTO_CENTER;
 		this.isCentering = false;
+	}
+
+	reset() {
+		this.currentYaw = this.defaultYaw;
+		this.currentPitch = this.defaultPitch;
+		this.isCentering = false;
+		this.cameraRig.snapRotation(this.currentYaw, this.currentPitch);
 	}
 
 	update(isTargetMoving = false) {
