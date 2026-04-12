@@ -20,7 +20,8 @@ export default class Planet {
 		this.axisTilt.rotation.z = orbitInclination * (Math.PI / 180);
 
 		const geometry = new THREE.SphereGeometry(radius, CONFIG.SPHERE_SEGMENTS, CONFIG.SPHERE_SEGMENTS);
-		const material = new THREE.MeshToonMaterial({ color });
+		const texture = this._createGridTexture();
+		const material = new THREE.MeshToonMaterial({ color, map: texture });
 		this.mesh = new THREE.Mesh(geometry, material);
 		this.mesh.rotation.z = rotationAxis * (Math.PI / 180);
 		this.axisTilt.add(this.mesh);
@@ -41,7 +42,7 @@ export default class Planet {
 	}
 
 	attach(object) {
-		this.axisTilt.add(object);
+		this.mesh.add(object);
 	}
 
 	move() {
@@ -50,7 +51,7 @@ export default class Planet {
 	}
 
 	remove(object) {
-		this.axisTilt.remove(object);
+		this.mesh.remove(object);
 	}
 
 	activateDebugMode() {
@@ -131,6 +132,36 @@ export default class Planet {
 		});
 
 		this.orbitPath = new THREE.LineLoop(geometry, material);
+	}
+
+	_createGridTexture() {
+		const size = 512;
+		const canvas = document.createElement('canvas');
+		canvas.width = size;
+		canvas.height = size;
+		const ctx = canvas.getContext('2d');
+
+		ctx.fillStyle = '#ffffff';
+		ctx.fillRect(0, 0, size, size);
+
+		ctx.strokeStyle = '#000000';
+		ctx.lineWidth = 2;
+		const divisions = 8;
+		const step = size / divisions;
+
+		for (let i = 0; i <= divisions; i++) {
+			ctx.beginPath();
+			ctx.moveTo(i * step, 0);
+			ctx.lineTo(i * step, size);
+			ctx.stroke();
+
+			ctx.beginPath();
+			ctx.moveTo(0, i * step);
+			ctx.lineTo(size, i * step);
+			ctx.stroke();
+		}
+
+		return new THREE.CanvasTexture(canvas);
 	}
 }
 
