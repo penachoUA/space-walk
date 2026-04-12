@@ -13,15 +13,14 @@ export default class CameraController {
 		this.cameraRig = cameraRig;
 		this.input = input;
 
-		// Default values if none are provided
 		this.defaultPitch = config.pitch ?? DEFAULTS.PITCH;
 		this.defaultYaw = config.yaw ?? DEFAULTS.YAW;
-
-		this.currentPitch = this.defaultPitch;
-		this.currentYaw = this.defaultYaw;
 		this.sensitivity = config.sensitivity ?? DEFAULTS.SENSITIVITY;
 		this.minPitch = config.minPitch ?? DEFAULTS.MIN_PITCH;
 		this.maxPitch = config.maxPitch ?? DEFAULTS.MAX_PITCH;
+
+		this.currentPitch = this.defaultPitch;
+		this.currentYaw = this.defaultYaw;
 
 		this.unconstrained = config.unconstrained ?? false;
 		this.autoCenterEnabled = config.autoCenter ?? false;

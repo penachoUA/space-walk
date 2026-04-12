@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { createNoise2D } from 'simplex-noise';
 
 const CONFIG = {
 	SPHERE_SEGMENTS: 32,
@@ -8,7 +9,18 @@ const CONFIG = {
 };
 
 export default class Planet {
-	constructor({ radius, color, orbitRadius, orbitSpeed, orbitAngle, orbitInclination, rotationSpeed, rotationAxis }) {
+	constructor({
+		radius,
+		color1,
+		color2,
+		color3,
+		orbitRadius,
+		orbitSpeed,
+		orbitAngle,
+		orbitInclination,
+		rotationSpeed,
+		rotationAxis
+	}) {
 		// Root handles orbital inclination — tilting the entire orbit plane
 		this.root = new THREE.Object3D();
 		this.root.rotation.z = orbitInclination * (Math.PI / 180);
@@ -25,7 +37,8 @@ export default class Planet {
 
 		// Setup visual, mesh is the surface of the planet
 		const geometry = new THREE.SphereGeometry(radius, CONFIG.SPHERE_SEGMENTS, CONFIG.SPHERE_SEGMENTS);
-		const material = new THREE.MeshToonMaterial({ color, map: this._createGridTexture() });
+		const texture = Planet._generateTexture(color1, color2, color3);
+		const material = new THREE.MeshToonMaterial({ map: texture });
 		this.mesh = new THREE.Mesh(geometry, material);
 		this.axisTilt.add(this.mesh);
 
@@ -130,33 +143,37 @@ export default class Planet {
 		this.orbitPath = new THREE.LineLoop(geometry, material);
 	}
 
-	_createGridTexture() {
+	static _generateTexture(color1, color2, color3) {
+		const noise2D = createNoise2D();
 		const size = 512;
 		const canvas = document.createElement('canvas');
 		canvas.width = size;
 		canvas.height = size;
 		const ctx = canvas.getContext('2d');
 
-		ctx.fillStyle = '#ffffff';
-		ctx.fillRect(0, 0, size, size);
+		const low = new THREE.Color(color1);
+		const mid = new THREE.Color(color2);
+		const high = new THREE.Color(color3);
 
-		ctx.strokeStyle = '#000000';
-		ctx.lineWidth = 2;
-		const divisions = 8;
-		const step = size / divisions;
-
-		for (let i = 0; i <= divisions; i++) {
-			ctx.beginPath();
-			ctx.moveTo(i * step, 0);
-			ctx.lineTo(i * step, size);
-			ctx.stroke();
-
-			ctx.beginPath();
-			ctx.moveTo(0, i * step);
-			ctx.lineTo(size, i * step);
-			ctx.stroke();
+		for (let y = 0; y < size; y++) {
+			for (let x = 0; x < size; x++) {
+				const t = (noise2D(x * 0.02, y * 0.02) + 1) / 2;
+				let r, g, b;
+				if (t < 0.4) {
+					const s = t / 0.4;
+					r = low.r + (mid.r - low.r) * s;
+					g = low.g + (mid.g - low.g) * s;
+					b = low.b + (mid.b - low.b) * s;
+				} else {
+					const s = (t - 0.4) / 0.6;
+					r = mid.r + (high.r - mid.r) * s;
+					g = mid.g + (high.g - mid.g) * s;
+					b = mid.b + (high.b - mid.b) * s;
+				}
+				ctx.fillStyle = `rgb(${Math.floor(r * 255)},${Math.floor(g * 255)},${Math.floor(b * 255)})`;
+				ctx.fillRect(x, y, 1, 1);
+			}
 		}
-
 		return new THREE.CanvasTexture(canvas);
 	}
 }

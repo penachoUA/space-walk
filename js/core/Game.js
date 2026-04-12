@@ -161,7 +161,9 @@ export default class Game {
 		this.planets = [
 			new Planet({
 				radius: 2,
-				color: 0x44aaff,
+				color1: 0x1a6b2e,  // deep jungle
+				color2: 0x4caf50,  // mid green land
+				color3: 0xc8d97a,  // dry/sandy highlands
 				orbitRadius: 50,
 				orbitSpeed: 0.012,
 				orbitAngle: 0,
@@ -171,7 +173,9 @@ export default class Game {
 			}),
 			new Planet({
 				radius: 1.5,
-				color: 0x2e8c20,
+				color1: 0x1a3a6e,  // deep ocean/cracks
+				color2: 0xa8d4e8,  // ice shelf
+				color3: 0xf0f8ff,  // bright snow peaks
 				orbitRadius: 25,
 				orbitSpeed: 0.013,
 				orbitAngle: 4,
@@ -181,12 +185,14 @@ export default class Game {
 			}),
 			new Planet({
 				radius: 0.5,
-				color: 0xa12ad1,
+				color1: 0x1a0a00,  // dark basalt
+				color2: 0x8b1a00,  // deep red rock
+				color3: 0xff4500,  // bright lava
 				orbitRadius: 13,
 				orbitSpeed: 0.001,
 				orbitAngle: 2,
 				orbitInclination: -10,
-				rotationSpeed: 0.1522,
+				rotationSpeed: 0.0022,
 				rotationAxis: 23
 			})
 		];
