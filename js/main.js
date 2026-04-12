@@ -9,4 +9,4 @@ import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 // 	new Game(scene, renderer);
 // });
 //
-new Game(scene, renderer, false);
+new Game(scene, renderer, true);

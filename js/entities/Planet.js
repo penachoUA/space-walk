@@ -3,26 +3,29 @@ import * as THREE from 'three';
 const CONFIG = {
 	SPHERE_SEGMENTS: 32,
 	ORBIT_LINE_SEGMENTS: 128,
-	PLANET_AXES_SIZE: 5,
-	MESH_AXES_SIZE: 3,
+	AXES_SIZE: 3,
 	DEBUG_OPACITY: 0.5
 };
 
 export default class Planet {
 	constructor({ radius, color, orbitRadius, orbitSpeed, orbitAngle, orbitInclination, rotationSpeed, rotationAxis }) {
+		// Root handles orbital inclination — tilting the entire orbit plane
 		this.root = new THREE.Object3D();
-		this.orbitPivot = new THREE.Object3D();
-		this.axisTilt = new THREE.Object3D();
-		this.root.add(this.orbitPivot);
-		this.orbitPivot.add(this.axisTilt);
-
-		this.axisTilt.position.x = orbitRadius;
-		this.axisTilt.rotation.z = rotationAxis * (Math.PI / 180); // tilt lives here now
 		this.root.rotation.z = orbitInclination * (Math.PI / 180);
 
+		// orbitPivot rotates around Y each frame to move the planet around the star
+		this.orbitPivot = new THREE.Object3D();
+		this.root.add(this.orbitPivot);
+
+		// axisTilt offsets the planet to its orbital radius and applies axial tilt
+		this.axisTilt = new THREE.Object3D();
+		this.axisTilt.position.x = orbitRadius;
+		this.axisTilt.rotation.z = rotationAxis * (Math.PI / 180);
+		this.orbitPivot.add(this.axisTilt);
+
+		// Setup visual, mesh is the surface of the planet
 		const geometry = new THREE.SphereGeometry(radius, CONFIG.SPHERE_SEGMENTS, CONFIG.SPHERE_SEGMENTS);
-		const texture = this._createGridTexture();
-		const material = new THREE.MeshToonMaterial({ color, map: texture });
+		const material = new THREE.MeshToonMaterial({ color, map: this._createGridTexture() });
 		this.mesh = new THREE.Mesh(geometry, material);
 		this.axisTilt.add(this.mesh);
 
@@ -30,21 +33,9 @@ export default class Planet {
 		this.orbitSpeed = orbitSpeed;
 		this.orbitAngle = orbitAngle;
 		this.rotationSpeed = rotationSpeed;
-
 		this._orbitRadius = orbitRadius;
-		this._orbitInclination = orbitInclination * (Math.PI / 180);
-		this.debug = new THREE.Object3D();
-		this.axisTilt.add(this.debug);
-		this.debug.visible = false;
 
-		// Stable rotation axis — single arrow on axisTilt pointing along Y
-		this._axisArrow = new THREE.ArrowHelper(
-			new THREE.Vector3(0, 1, 0),  // direction
-			new THREE.Vector3(0, 0, 0),  // origin
-			this.radius + CONFIG.PLANET_AXES_SIZE,  // length
-			0xffffff  // color
-		);
-		this.axisTilt.add(this._axisArrow);
+		this.orbitPath = null;
 	}
 
 	addTo(parent) {
@@ -52,8 +43,12 @@ export default class Planet {
 		return this;
 	}
 
-	attach(object) {
+	addToSurface(object) {
 		this.mesh.add(object);
+	}
+
+	removeFromSurface(object) {
+		this.mesh.remove(object);
 	}
 
 	move() {
@@ -61,24 +56,19 @@ export default class Planet {
 		this._rotate();
 	}
 
-	remove(object) {
-		this.mesh.remove(object);
-	}
-
 	activateDebugMode() {
-		if (this.debug.children.length === 0) {
-			const planetAxes = new THREE.AxesHelper(this.radius + CONFIG.PLANET_AXES_SIZE);
-			this.debug.add(planetAxes);
+		// Spinning axes — on mesh which only rotates around Y, should be clean now
+		this._spinAxes = new THREE.AxesHelper(this.radius + CONFIG.AXES_SIZE);
+		this.mesh.add(this._spinAxes);
 
-			const meshAxes = new THREE.AxesHelper(this.radius + CONFIG.MESH_AXES_SIZE);
-			this.mesh.add(meshAxes);
+		// Surface grid — on mesh so it stays fixed relative to player
+		this._createSurfaceGrid();
 
-			this._createSurfaceGrid();
-			this._createOrbitPath();
+		// Orbit path — on root so it inherits orbital inclination
+		this._createOrbitPath();
+		this.root.add(this.orbitPath);
 
-			this.mesh.material.wireframe = true;
-			this.debug.visible = true;
-		}
+		this.mesh.material.wireframe = true;
 	}
 
 	_orbit() {
@@ -117,7 +107,8 @@ export default class Planet {
 		});
 
 		const line = new THREE.LineSegments(edges, lineMaterial);
-		this.debug.add(line);
+		this.mesh.add(line);
+		this._surfaceGrid = line;
 	}
 
 	_createOrbitPath() {

@@ -119,7 +119,7 @@ export default class Game {
 				this.orbitControls.enabled = false;
 				break;
 			case CAMERA_MODES.PLANET:
-				this.currentPlanet.attach(this.cameraRig);
+				this.currentPlanet.addToSurface(this.cameraRig);
 				this.cameraRig.position.set(0, 0, 0);
 				this.cameraRig.camera.position.set(0, 0, this.currentPlanet.radius * 2);
 				this.orbitControls.enabled = false;
@@ -183,7 +183,7 @@ export default class Game {
 				orbitSpeed: 0.001,
 				orbitAngle: 2,
 				orbitInclination: -10,
-				rotationSpeed: 0.0522,
+				rotationSpeed: 0.1522,
 				rotationAxis: 23
 			})
 		];
@@ -248,10 +248,7 @@ export default class Game {
 	}
 
 	_activateDebugMode() {
-		this.planets.forEach((p) => {
-			p.activateDebugMode();
-			if (p.orbitPath) p.root.add(p.orbitPath);
-		});
+		this.planets.forEach((p) => { p.activateDebugMode() });
 		this.player.activateDebugMode();
 	}
 

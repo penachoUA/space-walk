@@ -31,7 +31,7 @@ export default class Player extends THREE.Object3D {
 	}
 
 	moveToPlanet(planet) {
-		if (this.currentPlanet) this.currentPlanet.remove(this);
+		if (this.currentPlanet) this.currentPlanet.removeFromSurface(this);
 		this.currentPlanet = planet;
 
 		// The pivot stays at 0,0,0 relative to the planet
@@ -41,7 +41,7 @@ export default class Player extends THREE.Object3D {
 		// Move the model + camera to the surface
 		this.playerModel.position.set(0, planet.radius, 0);
 
-		planet.attach(this);
+		planet.addToSurface(this);
 	}
 
 	update() {
