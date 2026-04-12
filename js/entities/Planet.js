@@ -8,37 +8,49 @@ const CONFIG = {
 	DEBUG_OPACITY: 0.5
 };
 
-export default class Planet extends THREE.Object3D {
+export default class Planet {
 	constructor({ radius, color, orbitRadius, orbitSpeed, orbitAngle, orbitInclination, rotationSpeed, rotationAxis }) {
-		super();
+		this.root = new THREE.Object3D();
+		this.orbitPivot = new THREE.Object3D();
+		this.axisTilt = new THREE.Object3D();
+		this.root.add(this.orbitPivot);
+		this.orbitPivot.add(this.axisTilt);
+
+		this.axisTilt.position.x = orbitRadius;
+		this.axisTilt.rotation.z = orbitInclination * (Math.PI / 180);
 
 		const geometry = new THREE.SphereGeometry(radius, CONFIG.SPHERE_SEGMENTS, CONFIG.SPHERE_SEGMENTS);
 		const material = new THREE.MeshToonMaterial({ color });
 		this.mesh = new THREE.Mesh(geometry, material);
-		this.add(this.mesh);
+		this.mesh.rotation.z = rotationAxis * (Math.PI / 180);
+		this.axisTilt.add(this.mesh);
 
 		this.radius = radius;
-
-		// Orbit
-		this.orbitRadius = orbitRadius;
 		this.orbitSpeed = orbitSpeed;
 		this.orbitAngle = orbitAngle;
-		this.orbitInclination = orbitInclination * (Math.PI / 180); // Convert to radians
-
-		// Rotation
-		this.mesh.rotation.z = rotationAxis * (Math.PI / 180);
 		this.rotationSpeed = rotationSpeed;
 
-		// Visual debugging features
-		this.orbitPath = null;
 		this.debug = new THREE.Object3D();
-		this.add(this.debug);
+		this.axisTilt.add(this.debug);
 		this.debug.visible = false;
+	}
+
+	addTo(parent) {
+		parent.add(this.root);
+		return this;
+	}
+
+	attach(object) {
+		this.axisTilt.add(object);
 	}
 
 	move() {
 		this._orbit();
 		this._rotate();
+	}
+
+	remove(object) {
+		this.axisTilt.remove(object);
 	}
 
 	activateDebugMode() {

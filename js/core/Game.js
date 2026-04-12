@@ -119,7 +119,7 @@ export default class Game {
 				this.orbitControls.enabled = false;
 				break;
 			case CAMERA_MODES.PLANET:
-				this.currentPlanet.add(this.cameraRig);
+				this.currentPlanet.attach(this.cameraRig);
 				this.cameraRig.position.set(0, 0, 0);
 				this.cameraRig.camera.position.set(0, 0, this.currentPlanet.radius * 2);
 				this.orbitControls.enabled = false;
@@ -188,7 +188,7 @@ export default class Game {
 			})
 		];
 
-		this.planets.forEach((p) => this.scene.add(p))
+		this.planets.forEach((p) => p.addTo(this.scene))
 		this.currentPlanet = this.planets[1];
 	}
 

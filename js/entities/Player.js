@@ -41,7 +41,7 @@ export default class Player extends THREE.Object3D {
 		// Move the model + camera to the surface
 		this.playerModel.position.set(0, planet.radius, 0);
 
-		planet.add(this);
+		planet.attach(this);
 	}
 
 	update() {
