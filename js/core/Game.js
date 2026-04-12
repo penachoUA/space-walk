@@ -102,27 +102,26 @@ export default class Game {
 		}
 
 		switch (this.cameraMode) {
-			case CAMERA_MODES.SYSTEM:
-				this.scene.add(this.cameraRig);
-				this.orbitControls.enabled = true;
-				break;
 			case CAMERA_MODES.THIRD_PERSON:
-				this.player.playerModel.add(this.cameraRig);
-				this.cameraRig.position.set(0, this.player.height * 0.8, 0);
-				this.cameraRig.camera.position.set(0, this.player.height * 2, this.player.height * 6);
-				this.orbitControls.enabled = false;
+				this.player.attachToModel(this.cameraRig);
+				this.cameraRig.setPosition(0, this.player.height * 0.8, 0);
+				this.cameraRig.setCameraPosition(0, this.player.height * 2, this.player.height * 6);
 				break;
+
 			case CAMERA_MODES.FIRST_PERSON:
-				this.player.playerModel.add(this.cameraRig);
-				this.cameraRig.position.set(0, this.player.height * 0.8, 0);
-				this.cameraRig.camera.position.set(0, 0, 0);
-				this.orbitControls.enabled = false;
+				this.player.attachToModel(this.cameraRig);
+				this.cameraRig.setPosition(0, this.player.height * 0.8, 0);
+				this.cameraRig.setCameraPosition(0, 0, 0);
 				break;
+
 			case CAMERA_MODES.PLANET:
 				this.currentPlanet.addToSurface(this.cameraRig);
-				this.cameraRig.position.set(0, 0, 0);
-				this.cameraRig.camera.position.set(0, 0, this.currentPlanet.radius * 2);
-				this.orbitControls.enabled = false;
+				this.cameraRig.setPosition(0, 0, 0);
+				this.cameraRig.setCameraPosition(0, 0, this.currentPlanet.radius * 2);
+				break;
+
+			case CAMERA_MODES.SYSTEM:
+				this.cameraRig.addTo(this.scene);
 				break;
 		}
 	}
@@ -133,10 +132,10 @@ export default class Game {
 		this.setCameraMode(modesArray[(i + 1) % modesArray.length]);
 	}
 
-	changePlanet(i) {
+	changePlanet(planetIndex) {
 		if (this.cameraMode === CAMERA_MODES.SYSTEM) return;
 
-		this.currentPlanet = this.planets[i];
+		this.currentPlanet = this.planets[planetIndex];
 		this.player.moveToPlanet(this.currentPlanet);
 		this.setCameraMode(this.cameraMode); // Refresh the rig parenting
 	}
@@ -153,7 +152,7 @@ export default class Game {
 			color: 0xebe5c7
 		});
 
-		this.scene.add(this.star);
+		this.star.addTo(this.scene);
 		// Planets
 		this.planets = [
 			new Planet({

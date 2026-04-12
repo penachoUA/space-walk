@@ -11,9 +11,9 @@ const CONFIG = {
 	}
 };
 
-class Star extends THREE.Object3D {
+export default class Star {
 	constructor({ radius, color }) {
-		super();
+		this.root = new THREE.Object3D();
 
 		const geometry = new THREE.SphereGeometry(radius, CONFIG.SEGMENTS, CONFIG.SEGMENTS);
 		const material = new THREE.MeshToonMaterial({
@@ -24,7 +24,7 @@ class Star extends THREE.Object3D {
 		this.radius = radius;
 
 		this.mesh = new THREE.Mesh(geometry, material);
-		this.add(this.mesh);
+		this.root.add(this.mesh);
 
 		this.light = new THREE.PointLight(
 			CONFIG.LIGHT.COLOR,
@@ -32,8 +32,12 @@ class Star extends THREE.Object3D {
 			CONFIG.LIGHT.DISTANCE,
 			CONFIG.LIGHT.DECAY
 		);
-		this.add(this.light);
+		this.root.add(this.light);
+	}
+
+	addTo(parent) {
+		parent.add(this.root);
+		return this;
 	}
 }
 
-export default Star;

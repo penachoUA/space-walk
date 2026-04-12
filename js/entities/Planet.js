@@ -44,11 +44,7 @@ export default class Planet {
 	}
 
 	addToSurface(object) {
-		this.mesh.add(object);
-	}
-
-	removeFromSurface(object) {
-		this.mesh.remove(object);
+		object.addTo(this.mesh);
 	}
 
 	move() {

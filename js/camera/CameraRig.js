@@ -4,32 +4,39 @@ const CONFIG = {
 	SMOOTHING: 0.05
 };
 
-export default class CameraRig extends THREE.Object3D {
+export default class CameraRig {
 	constructor() {
-		super();
-		this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 10000);
+		this.root = new THREE.Object3D();
 
-		// Camera hierarchy
 		this.yaw = new THREE.Object3D();
 		this.pitch = new THREE.Object3D();
-		this.add(this.yaw);
+		this.root.add(this.yaw);
 		this.yaw.add(this.pitch);
+
+		this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 10000);
 		this.pitch.add(this.camera);
 	}
 
-	setRotation(yaw, pitch) {
-		// Smooth movement
-		this.yaw.rotation.y = THREE.MathUtils.lerp(
-			this.yaw.rotation.y,
-			yaw,
-			CONFIG.SMOOTHING
-		);
+	addTo(parent) {
+		parent.add(this.root);
+		return this;
+	}
 
-		this.pitch.rotation.x = THREE.MathUtils.lerp(
-			this.pitch.rotation.x,
-			pitch,
-			CONFIG.SMOOTHING
-		);
+	setPosition(x, y, z) {
+		this.root.position.set(x, y, z);
+	}
+
+	setCameraPosition(x, y, z) {
+		this.camera.position.set(x, y, z);
+	}
+
+	setRotation(yaw, pitch) {
+		this.yaw.rotation.y = THREE.MathUtils.lerp(this.yaw.rotation.y, yaw, CONFIG.SMOOTHING);
+		this.pitch.rotation.x = THREE.MathUtils.lerp(this.pitch.rotation.x, pitch, CONFIG.SMOOTHING);
+	}
+
+	snapRotation(yaw, pitch) {
+		this.yaw.rotation.y = yaw;
+		this.pitch.rotation.x = pitch;
 	}
 }
-

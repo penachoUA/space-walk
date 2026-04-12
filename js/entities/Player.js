@@ -15,9 +15,9 @@ const CONFIG = {
 
 // Player is composed of a pivot at the center of the planet and the actual model placed
 // at the surface. This facilitates rotation: rotate the pivot and the model follows
-export default class Player extends THREE.Object3D {
+export default class Player {
 	constructor({ height = CONFIG.DEFAULT_HEIGHT, speed = CONFIG.DEFAULT_SPEED }) {
-		super();
+		this.root = new THREE.Object3D();
 
 		this.height = height;
 		this.speed = speed;
@@ -30,13 +30,21 @@ export default class Player extends THREE.Object3D {
 		this._setupVisuals();
 	}
 
+	addTo(parent) {
+		parent.add(this.root);
+		return this;
+	}
+
+	attachToModel(object) {
+		object.addTo(this.playerModel);
+	}
+
 	moveToPlanet(planet) {
-		if (this.currentPlanet) this.currentPlanet.removeFromSurface(this);
 		this.currentPlanet = planet;
 
 		// The pivot stays at 0,0,0 relative to the planet
-		this.position.set(0, 0, 0);
-		this.quaternion.identity();
+		this.root.position.set(0, 0, 0);
+		this.root.quaternion.identity();
 
 		// Move the model + camera to the surface
 		this.playerModel.position.set(0, planet.radius, 0);
@@ -62,11 +70,11 @@ export default class Player extends THREE.Object3D {
 		_vector.copy(_right).applyAxisAngle(_up, this.heading);
 
 		// Convert to planet right axis
-		_vector.applyQuaternion(this.quaternion);
+		_vector.applyQuaternion(this.root.quaternion);
 
 		// Apply rotation to pivot
 		_quat.setFromAxisAngle(_vector, -moveStep);
-		this.quaternion.premultiply(_quat);
+		this.root.quaternion.premultiply(_quat);
 	}
 
 	activateDebugMode() {
@@ -75,7 +83,7 @@ export default class Player extends THREE.Object3D {
 
 	_setupVisuals() {
 		this.playerModel = new THREE.Group();
-		this.add(this.playerModel);
+		this.root.add(this.playerModel);
 
 		// Build the model
 		const geometry = new THREE.CylinderGeometry(this.radius, this.radius, this.height);
