@@ -4,7 +4,6 @@ const DEFAULTS = {
 	SENSITIVITY: 0.002,
 	MIN_PITCH: -1.5,
 	MAX_PITCH: 0.3,
-	AUTO_CENTER: true,
 	CENTERING_SPEED: 0.03,
 	CENTERING_THRESHOLD: 0.001,
 };
@@ -24,7 +23,8 @@ export default class CameraController {
 		this.minPitch = config.minPitch ?? DEFAULTS.MIN_PITCH;
 		this.maxPitch = config.maxPitch ?? DEFAULTS.MAX_PITCH;
 
-		this.autoCenterEnabled = config.autoCenter ?? DEFAULTS.AUTO_CENTER;
+		this.unconstrained = config.unconstrained ?? false;
+		this.autoCenterEnabled = config.autoCenter ?? false;
 		this.isCentering = false;
 	}
 
@@ -43,7 +43,9 @@ export default class CameraController {
 			this.currentYaw -= this.input.mouse.moveX * this.sensitivity;
 			this.currentPitch -= this.input.mouse.moveY * this.sensitivity;
 
-			this.currentPitch = Math.max(this.minPitch, Math.min(this.maxPitch, this.currentPitch));
+			if (!this.unconstrained) {
+				this.currentPitch = Math.max(this.minPitch, Math.min(this.maxPitch, this.currentPitch));
+			}
 		}
 
 		if (this.autoCenterEnabled) {

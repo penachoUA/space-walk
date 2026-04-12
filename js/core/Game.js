@@ -34,15 +34,12 @@ const CAMERA_CONFIGS = {
 	},
 	[CAMERA_MODES.PLANET]: {
 		sensitivity: 0.0035,
-		minPitch: -Math.PI / 2,
-		maxPitch: Math.PI / 2,
-		autoCenter: false
+		unconstrained: true,
 	},
 	[CAMERA_MODES.SYSTEM]: {
 		sensitivity: 0.003,
 		minPitch: -Math.PI / 2,
 		maxPitch: Math.PI / 2,
-		autoCenter: false,
 		pitch: -0.2
 	}
 };
