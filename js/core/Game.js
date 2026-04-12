@@ -180,10 +180,10 @@ export default class Game {
 				radius: 0.5,
 				color: 0xa12ad1,
 				orbitRadius: 13,
-				orbitSpeed: 0.01,
+				orbitSpeed: 0.001,
 				orbitAngle: 2,
 				orbitInclination: -10,
-				rotationSpeed: 0.022,
+				rotationSpeed: 0.0522,
 				rotationAxis: 23
 			})
 		];

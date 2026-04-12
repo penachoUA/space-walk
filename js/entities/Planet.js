@@ -17,13 +17,13 @@ export default class Planet {
 		this.orbitPivot.add(this.axisTilt);
 
 		this.axisTilt.position.x = orbitRadius;
+		this.axisTilt.rotation.z = rotationAxis * (Math.PI / 180); // tilt lives here now
 		this.root.rotation.z = orbitInclination * (Math.PI / 180);
 
 		const geometry = new THREE.SphereGeometry(radius, CONFIG.SPHERE_SEGMENTS, CONFIG.SPHERE_SEGMENTS);
 		const texture = this._createGridTexture();
 		const material = new THREE.MeshToonMaterial({ color, map: texture });
 		this.mesh = new THREE.Mesh(geometry, material);
-		this.mesh.rotation.z = rotationAxis * (Math.PI / 180);
 		this.axisTilt.add(this.mesh);
 
 		this.radius = radius;
@@ -36,6 +36,15 @@ export default class Planet {
 		this.debug = new THREE.Object3D();
 		this.axisTilt.add(this.debug);
 		this.debug.visible = false;
+
+		// Stable rotation axis — single arrow on axisTilt pointing along Y
+		this._axisArrow = new THREE.ArrowHelper(
+			new THREE.Vector3(0, 1, 0),  // direction
+			new THREE.Vector3(0, 0, 0),  // origin
+			this.radius + CONFIG.PLANET_AXES_SIZE,  // length
+			0xffffff  // color
+		);
+		this.axisTilt.add(this._axisArrow);
 	}
 
 	addTo(parent) {
