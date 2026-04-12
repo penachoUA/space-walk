@@ -17,7 +17,7 @@ export default class Planet {
 		this.orbitPivot.add(this.axisTilt);
 
 		this.axisTilt.position.x = orbitRadius;
-		this.axisTilt.rotation.z = orbitInclination * (Math.PI / 180);
+		this.root.rotation.z = orbitInclination * (Math.PI / 180);
 
 		const geometry = new THREE.SphereGeometry(radius, CONFIG.SPHERE_SEGMENTS, CONFIG.SPHERE_SEGMENTS);
 		const texture = this._createGridTexture();
@@ -31,6 +31,8 @@ export default class Planet {
 		this.orbitAngle = orbitAngle;
 		this.rotationSpeed = rotationSpeed;
 
+		this._orbitRadius = orbitRadius;
+		this._orbitInclination = orbitInclination * (Math.PI / 180);
 		this.debug = new THREE.Object3D();
 		this.axisTilt.add(this.debug);
 		this.debug.visible = false;
@@ -115,16 +117,14 @@ export default class Planet {
 
 		for (let i = 0; i <= segments; i++) {
 			const angle = (i / segments) * Math.PI * 2;
-
-			const x = Math.sin(angle) * this.orbitRadius;
-			const y = Math.sin(angle) * this.orbitRadius * Math.sin(this.orbitInclination);
-			const z = Math.cos(angle) * this.orbitRadius;
-
-			points.push(new THREE.Vector3(x, y, z));
+			points.push(new THREE.Vector3(
+				Math.sin(angle) * this._orbitRadius,
+				0,
+				Math.cos(angle) * this._orbitRadius
+			));
 		}
 
 		const geometry = new THREE.BufferGeometry().setFromPoints(points);
-
 		const material = new THREE.LineBasicMaterial({
 			color: this.mesh.material.color,
 			transparent: true,

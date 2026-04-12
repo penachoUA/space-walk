@@ -250,7 +250,7 @@ export default class Game {
 	_activateDebugMode() {
 		this.planets.forEach((p) => {
 			p.activateDebugMode();
-			if (p.orbitPath) this.scene.add(p.orbitPath);
+			if (p.orbitPath) p.root.add(p.orbitPath);
 		});
 		this.player.activateDebugMode();
 	}
