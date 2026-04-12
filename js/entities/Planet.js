@@ -71,9 +71,7 @@ export default class Planet {
 
 	_orbit() {
 		this.orbitAngle += this.orbitSpeed;
-		this.position.x = Math.sin(this.orbitAngle) * this.orbitRadius;
-		this.position.y = Math.sin(this.orbitAngle) * this.orbitRadius * Math.sin(this.orbitInclination);
-		this.position.z = Math.cos(this.orbitAngle) * this.orbitRadius;
+		this.orbitPivot.rotation.y = this.orbitAngle;
 	}
 
 	_rotate() {
