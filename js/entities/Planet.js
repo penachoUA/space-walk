@@ -1,8 +1,10 @@
 import * as THREE from 'three';
-import { createNoise2D } from 'simplex-noise';
+import { createNoise3D } from 'simplex-noise';
+import alea from 'alea';
+
 
 const CONFIG = {
-	SPHERE_SEGMENTS: 32,
+	SPHERE_SEGMENTS: 64,
 	ORBIT_LINE_SEGMENTS: 128,
 	AXES_SIZE: 3,
 	DEBUG_OPACITY: 0.5
@@ -37,7 +39,7 @@ export default class Planet {
 
 		// Setup visual, mesh is the surface of the planet
 		const geometry = new THREE.SphereGeometry(radius, CONFIG.SPHERE_SEGMENTS, CONFIG.SPHERE_SEGMENTS);
-		const texture = Planet._generateTexture(color1, color2, color3);
+		const texture = Planet._generateTexture(color1, color2, color3, orbitRadius);
 		const material = new THREE.MeshToonMaterial({ map: texture });
 		this.mesh = new THREE.Mesh(geometry, material);
 		this.axisTilt.add(this.mesh);
@@ -143,9 +145,9 @@ export default class Planet {
 		this.orbitPath = new THREE.LineLoop(geometry, material);
 	}
 
-	static _generateTexture(color1, color2, color3) {
-		const noise2D = createNoise2D();
-		const size = 512;
+	static _generateTexture(color1, color2, color3, seed) {
+		const noise3D = createNoise3D(alea(seed));
+		const size = 1024;
 		const canvas = document.createElement('canvas');
 		canvas.width = size;
 		canvas.height = size;
@@ -157,7 +159,23 @@ export default class Planet {
 
 		for (let y = 0; y < size; y++) {
 			for (let x = 0; x < size; x++) {
-				const t = (noise2D(x * 0.02, y * 0.02) + 1) / 2;
+				const theta = (x / size) * Math.PI * 2;
+				const phi = (y / size) * Math.PI;
+
+				const nx = Math.sin(phi) * Math.cos(theta);
+				const ny = Math.sin(phi) * Math.sin(theta);
+				const nz = Math.cos(phi);
+
+				const rawT = Math.max(0, Math.min(1,
+					(noise3D(nx * 3, ny * 3, nz * 3) * 0.6 +
+						noise3D(nx * 8, ny * 8, nz * 8) * 0.3 +
+						noise3D(nx * 16, ny * 16, nz * 16) * 0.1
+						+ 1) / 2
+				));
+
+				// Posterize to 8 levels
+				const t = Math.floor(rawT * 8) / 8;
+
 				let r, g, b;
 				if (t < 0.4) {
 					const s = t / 0.4;
@@ -170,10 +188,12 @@ export default class Planet {
 					g = mid.g + (high.g - mid.g) * s;
 					b = mid.b + (high.b - mid.b) * s;
 				}
+
 				ctx.fillStyle = `rgb(${Math.floor(r * 255)},${Math.floor(g * 255)},${Math.floor(b * 255)})`;
 				ctx.fillRect(x, y, 1, 1);
 			}
 		}
+
 		return new THREE.CanvasTexture(canvas);
 	}
 }

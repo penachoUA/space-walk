@@ -21,7 +21,7 @@ export default class Player {
 
 		this.height = height;
 		this.speed = speed;
-		this.turnSpeed = speed;
+		this.turnSpeed = 2 * speed;
 		this.radius = height * CONFIG.RADIUS_RATIO;
 
 		this.heading = 0;

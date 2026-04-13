@@ -7,7 +7,7 @@ const CONFIG = {
 		COLOR: 0xffffff,
 		INTENSITY: 100,
 		DISTANCE: 0,
-		DECAY: 2
+		DECAY: 1.5
 	}
 };
 

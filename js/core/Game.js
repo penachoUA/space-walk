@@ -153,12 +153,36 @@ export default class Game {
 		// Star
 		this.star = new Star({
 			radius: 4,
-			color: 0xebe5c7
+			color: 0xf9a308
 		});
 
 		this.star.addTo(this.scene);
 		// Planets
 		this.planets = [
+			new Planet({
+				radius: 0.5,
+				color1: 0x1a0a00,  // dark basalt
+				color2: 0x8b1a00,  // deep red rock
+				color3: 0xff4500,  // bright lava
+				orbitRadius: 13,
+				orbitSpeed: 0.001,
+				orbitAngle: 2,
+				orbitInclination: -10,
+				rotationSpeed: 0.0022,
+				rotationAxis: 23
+			}),
+			new Planet({
+				radius: 1.5,
+				color1: 0x1a3a6e,  // deep blue cracks
+				color2: 0x60c8e8,  // bright ice blue
+				color3: 0xf0f8ff,  // white snow
+				orbitRadius: 25,
+				orbitSpeed: 0.013,
+				orbitAngle: 4,
+				orbitInclination: 20,
+				rotationSpeed: 0.012,
+				rotationAxis: 7
+			}),
 			new Planet({
 				radius: 2,
 				color1: 0x1a6b2e,  // deep jungle
@@ -171,38 +195,14 @@ export default class Game {
 				rotationSpeed: 0.01,
 				rotationAxis: 12
 			}),
-			new Planet({
-				radius: 1.5,
-				color1: 0x1a3a6e,  // deep ocean/cracks
-				color2: 0xa8d4e8,  // ice shelf
-				color3: 0xf0f8ff,  // bright snow peaks
-				orbitRadius: 25,
-				orbitSpeed: 0.013,
-				orbitAngle: 4,
-				orbitInclination: 20,
-				rotationSpeed: 0.012,
-				rotationAxis: 7
-			}),
-			new Planet({
-				radius: 0.5,
-				color1: 0x1a0a00,  // dark basalt
-				color2: 0x8b1a00,  // deep red rock
-				color3: 0xff4500,  // bright lava
-				orbitRadius: 13,
-				orbitSpeed: 0.001,
-				orbitAngle: 2,
-				orbitInclination: -10,
-				rotationSpeed: 0.0022,
-				rotationAxis: 23
-			})
 		];
 
 		this.planets.forEach((p) => p.addTo(this.scene))
-		this.currentPlanet = this.planets[1];
+		this.currentPlanet = this.planets[0];
 	}
 
 	_initPlayer() {
-		this.player = new Player({ height: 0.1, speed: 0.015 });
+		this.player = new Player({ height: 0.1, speed: 0.005 });
 		this.player.moveToPlanet(this.currentPlanet);
 	}
 
