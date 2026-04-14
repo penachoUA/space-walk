@@ -50,7 +50,10 @@ export default class Planet {
 		this.rotationSpeed = rotationSpeed;
 		this._orbitRadius = orbitRadius;
 
+		this.orbitPathColor = color2;
 		this.orbitPath = null;
+
+		this._createDebugFeatures();
 	}
 
 	addTo(parent) {
@@ -68,18 +71,17 @@ export default class Planet {
 	}
 
 	activateDebugMode() {
-		// Spinning axes — on mesh which only rotates around Y, should be clean now
-		this._spinAxes = new THREE.AxesHelper(this.radius + CONFIG.AXES_SIZE);
-		this.mesh.add(this._spinAxes);
+		if (this._spinAxes) this._spinAxes.visible = true;
+		if (this._surfaceGrid) this._surfaceGrid.visible = true;
+		if (this.orbitPath) this.orbitPath.visible = true;
+		this.mesh.material.visible = false;
+	}
 
-		// Surface grid — on mesh so it stays fixed relative to player
-		this._createSurfaceGrid();
-
-		// Orbit path — on root so it inherits orbital inclination
-		this._createOrbitPath();
-		this.root.add(this.orbitPath);
-
-		this.mesh.material.wireframe = true;
+	deactivateDebugMode() {
+		if (this._spinAxes) this._spinAxes.visible = false;
+		if (this._surfaceGrid) this._surfaceGrid.visible = false;
+		if (this.orbitPath) this.orbitPath.visible = false;
+		this.mesh.material.visible = true;
 	}
 
 	_orbit() {
@@ -91,8 +93,22 @@ export default class Planet {
 		this.mesh.rotation.y += this.rotationSpeed;
 	}
 
+	_createDebugFeatures() {
+		// Spinning axes — on mesh which only rotates around Y, should be clean now
+		this._spinAxes = new THREE.AxesHelper(this.radius + CONFIG.AXES_SIZE);
+		this.mesh.add(this._spinAxes);
+
+		// Surface grid — on mesh so it stays fixed relative to player
+		this._createSurfaceGrid();
+
+		// Orbit path — on root so it inherits orbital inclination
+		this._createOrbitPath();
+		this.root.add(this.orbitPath);
+	}
+
 	_createSurfaceGrid() {
-		const edges = new THREE.EdgesGeometry(this.mesh.geometry);
+		const gridGeometry = new THREE.SphereGeometry(this.radius, 32, 16);
+		const edges = new THREE.EdgesGeometry(gridGeometry);
 
 		const count = edges.attributes.position.count;
 		const colors = new Float32Array(count * 3); // (R,G,B) per vertex
@@ -137,8 +153,8 @@ export default class Planet {
 
 		const geometry = new THREE.BufferGeometry().setFromPoints(points);
 		const material = new THREE.LineBasicMaterial({
-			color: this.mesh.material.color,
-			transparent: true,
+			color: this.orbitPathColor,
+			// transparent: true,
 			opacity: CONFIG.DEBUG_OPACITY,
 		});
 

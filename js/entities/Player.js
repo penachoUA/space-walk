@@ -10,7 +10,7 @@ const CONFIG = {
 	RADIUS_RATIO: 0.25,
 	COLOR: 0x00ff00,
 	DEFAULT_HEIGHT: 0.1,
-	DEFAULT_SPEED: 0.015
+	DEFAULT_SPEED: 0.045
 };
 
 // Player is composed of a pivot at the center of the planet and the actual model placed
@@ -28,6 +28,10 @@ export default class Player {
 		this.isMoving = false;
 
 		this._setupVisuals();
+
+		// Debugging feature
+		this._axes = new THREE.AxesHelper(1);
+		this.playerModel.add(this._axes);
 	}
 
 	addTo(parent) {
@@ -78,7 +82,12 @@ export default class Player {
 	}
 
 	activateDebugMode() {
-		this.playerModel.add(new THREE.AxesHelper(1));
+		this._axes.visible = true;
+	}
+
+	deactivateDebugMode() {
+
+		this._axes.visible = false;
 	}
 
 	_setupVisuals() {

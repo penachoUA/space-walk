@@ -10,13 +10,14 @@ import InputHandler from './InputHandler.js';
 const CONTROLS = {
 	CYCLE_CAMERA: 'KeyV',
 	PLANET_PREFIX: 'Digit',
+	TOGGLE_DEBUG: 'KeyB',
 };
 
 const CAMERA_MODES = {
 	SYSTEM: 'system',
 	THIRD_PERSON: 'thirdPerson',
 	FIRST_PERSON: 'firstPerson',
-	PLANET: 'planet'
+	PLANET: 'planet',
 };
 
 const CAMERA_CONFIGS = {
@@ -59,7 +60,9 @@ export default class Game {
 
 		this.setCameraMode('system');
 
-		if (debug) this._activateDebugMode();
+		this.debugActive = !debug;
+		this._toggleDebugMode();
+
 		this.renderer.setAnimationLoop(() => this.update());
 	}
 
@@ -86,6 +89,11 @@ export default class Game {
 		// Handle camera
 		this.activeCameraController.update(this.player.isMoving);
 		this.renderer.render(this.scene, this.cameraRig.camera);
+
+		// Handle debug mode toggling
+		if (this.input.isTapped(CONTROLS.TOGGLE_DEBUG)) {
+			this._toggleDebugMode();
+		}
 
 		this.input.afterUpdate();
 	}
@@ -165,10 +173,10 @@ export default class Game {
 				color2: 0x8b1a00,  // deep red rock
 				color3: 0xff4500,  // bright lava
 				orbitRadius: 13,
-				orbitSpeed: 0.001,
+				orbitSpeed: 0.021,
 				orbitAngle: 2,
 				orbitInclination: -10,
-				rotationSpeed: 0.0022,
+				rotationSpeed: 0.022,
 				rotationAxis: 23
 			}),
 			new Planet({
@@ -249,10 +257,15 @@ export default class Game {
 		})
 	}
 
-	_activateDebugMode() {
-		this.planets.forEach((p) => { p.activateDebugMode() });
-		this.player.activateDebugMode();
+	_toggleDebugMode() {
+		this.debugActive = !this.debugActive;
+		if (this.debugActive) {
+			this.planets.forEach((p) => { p.activateDebugMode() });
+			this.player.activateDebugMode();
+		} else {
+			this.planets.forEach(p => p.deactivateDebugMode());
+			this.player.deactivateDebugMode();
+		}
 	}
-
 }
 
